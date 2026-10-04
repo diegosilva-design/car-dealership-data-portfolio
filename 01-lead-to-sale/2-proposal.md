@@ -6,7 +6,7 @@
 2. **An owner from minute one:** assignment is automatic and even, not dependent on who's looking at the phone.
 3. **The system reminds, not people's memory:** if a lead falls behind, an alert goes out.
 4. **Measure to manage:** every stage change is recorded and feeds a dashboard.
-5. **Tools the company already has:** Google Sheets and Gmail. No new licenses, no custom development.
+5. **Prove it before buying anything:** prototype the workflow with Google Sheets and Gmail. Once it works, the same rules (round-robin, response-time alerts) get configured in the dealership's CRM.
 
 ## 2.2 Proposed process (TO-BE)
 
@@ -14,8 +14,8 @@
 flowchart TD
     A([Customer inquires]) --> B{Channel}
     B -->|Website| F[Quote request form]
-    B -->|WhatsApp / Social / Phone / Walk-in| R[Reception or salesperson logs it<br/>in the same form · 30 sec]
-    B -->|Chileautos| R
+    B -->|Text / Social / Phone / Walk-in| R[Reception or salesperson logs it<br/>in the same form · 30 sec]
+    B -->|CarGurus / Cars.com| R
     F --> S[(Leads sheet<br/>Google Sheets)]
     R --> S
     S --> AS[⚙️ Automatic assignment<br/>round-robin across active salespeople]
@@ -29,7 +29,7 @@ flowchart TD
     J --> E
     E --> T[Test drive → Quote]
     T --> V{Buys?}
-    V -->|Yes| OK([✅ Sold · margin recorded])
+    V -->|Yes| OK([✅ Sold · gross profit recorded])
     V -->|No| P([Lost · with a reason])
     S -.-> D[📊 Weekly dashboard<br/>Monday sales meeting]
 
@@ -85,7 +85,7 @@ flowchart TD
 | Risk | Mitigation |
 |---|---|
 | Salespeople don't update statuses | One click (dropdown). The manager reviews the "not updated" ranking every Monday |
-| Logging WhatsApp leads feels like a chore | 30-second, mobile-friendly form. Phase 2: WhatsApp Business integration |
+| Logging text-message leads feels like a chore | 30-second, mobile-friendly form. Phase 2: connect a business texting platform so texts are logged automatically |
 | A salesperson with many open leads keeps receiving more | "Active" column to pause them. Phase 2: workload-weighted assignment |
 | Personal data in the sheet | Access restricted to the sales team. The dashboard only receives columns without personal data |
 

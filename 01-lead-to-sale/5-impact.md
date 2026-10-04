@@ -16,25 +16,25 @@
 
 ## 5.2 Estimated economic value
 
-**Formula:** `leads per month × conversion uplift × margin per sale`
+**Formula:** `leads per month × conversion uplift × gross profit per vehicle`
 
 ```
-504 leads × (10.65% − 6.79%) × CLP 1.33M  ≈  19.5 sales  ≈  CLP 25.9M additional margin per month
+504 leads × (10.65% − 6.79%) × $2,800  ≈  19.5 sales  ≈  $54.6K additional gross profit per month
 ```
 
 The full pilot result is **not attributed to the new workflow alone**. Seasonality may play a part, teams try harder when they know they're being measured (the pilot effect), and the market can shift. That's why three scenarios are presented:
 
-| Scenario | % of uplift attributed to the workflow | Extra sales per month | Extra margin per month | Extra margin per year |
+| Scenario | % of uplift attributed to the workflow | Extra sales per month | Extra gross profit per month | Extra gross profit per year |
 |---|---|---|---|---|
-| Conservative | 25% | ~4.9 | ~CLP 6.5M | ~CLP 78M |
-| **Base** | **50%** | **~9.7** | **~CLP 12.9M** | **~CLP 155M** |
-| Optimistic | 100% | ~19.5 | ~CLP 25.9M | ~CLP 311M |
+| Conservative | 25% | ~4.9 | ~$13.6K | ~$164K |
+| **Base** | **50%** | **~9.7** | **~$27.3K** | **~$327K** |
+| Optimistic | 100% | ~19.5 | ~$54.6K | ~$655K |
 
 ## 5.3 Cost of the solution
 
 | Item | Cost |
 |---|---|
-| Licenses | CLP 0 (Google Workspace, which the company already uses) |
+| Software | $0 extra: Google Sheets + Gmail for the pilot, then the CRM the dealership already pays for |
 | Implementation | ~40 hours of analysis and setup |
 | Operation | ~5 min per day for the sales manager to review alerts + 30 sec per manually logged lead |
 
@@ -48,7 +48,7 @@ The full pilot result is **not attributed to the new workflow alone**. Seasonali
 
 ## 5.5 Recommended next steps
 
-1. Integrate WhatsApp Business and Chileautos so those leads come in automatically, with no manual logging.
+1. Move the workflow rules into the dealership's CRM and connect a business texting platform, so every lead is logged automatically.
 2. Assign leads based on each salesperson's current workload instead of plain round-robin.
 3. Analyze loss reasons: which quotes don't close, and why.
 

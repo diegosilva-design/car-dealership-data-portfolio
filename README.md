@@ -11,7 +11,7 @@
 
 | # | Case | Business question | Result | Status |
 |---|---|---|---|---|
-| 01 | [**Lead → Sale**](01-lead-to-sale/README.md) | Why do so many interested customers turn into so few sales? | Conversion 6.8% → 10.7% · ~CLP 12.9M/month in additional margin (base scenario) | ✅ Complete |
+| 01 | [**Lead → Sale**](01-lead-to-sale/README.md) | Why do so many interested customers turn into so few sales? | Conversion 6.8% → 10.7% · ~$27K/month in additional gross profit (base scenario) | ✅ Complete |
 | 02 | Service shop / After-sales | How long does each service take, and how satisfied are customers? | — | 🔜 Coming soon |
 | 03 | Used-car trade-in appraisal | How do we appraise faster, with consistent criteria? | — | 🔜 Coming soon |
 
@@ -52,4 +52,4 @@ Method details and an express-diagnosis questionnaire: [docs/methodology.md](doc
     └── 5-impact.md           results and economic value
 ```
 
-> **Note:** "Andes Motors" is a fictional company and all data is synthetic. Regenerate it with `powershell -ExecutionPolicy Bypass -File data\generate_data.ps1`.
+> **Note:** "Redwood Auto Group" is a fictional company and all data is synthetic. Regenerate it with `powershell -ExecutionPolicy Bypass -File data\generate_data.ps1`.

@@ -32,7 +32,7 @@ A 4-step method I apply to any process: sales, service shop, trade-in appraisals
 1. How does the process start? What triggers it?
 2. Where does the information come in? How many different channels are there?
 3. Who decides which person takes ownership? How do they decide?
-4. Where is each step recorded? (system, spreadsheet, notebook, WhatsApp, memory)
+4. Where is each step recorded? (CRM, spreadsheet, notebook, text messages, memory)
 5. How long should each stage take, and how long does it actually take?
 6. What happens when something falls behind? Who finds out?
 7. At which step are the most cases lost, or the most complaints raised?

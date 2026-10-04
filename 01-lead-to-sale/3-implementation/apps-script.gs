@@ -17,20 +17,21 @@ const CONFIG = {
   SALES_MANAGER_EMAIL: 'sales.manager@example.com',
   SLA_REMINDER_HOURS: 1,
   SLA_ESCALATION_HOURS: 4,
-  ESTIMATED_MARGIN: 0.07,                  // average margin over price, for the dashboard
+  ESTIMATED_GROSS: 0.095,                  // average gross profit (vehicle + F&I) as a share of price, for the dashboard
 };
 
+// Approximate starting MSRP in USD
 const PRICES = {
-  'Toyota Yaris': 15990000, 'Toyota Corolla Cross': 24990000, 'Toyota Hilux': 32990000,
-  'Chevrolet Groove': 11990000, 'Chevrolet Tracker': 18490000, 'Hyundai Accent': 13990000,
-  'Hyundai Tucson': 27990000, 'Kia Soluto': 11490000, 'Kia Sportage': 26990000,
-  'Suzuki Swift': 12490000, 'Suzuki Vitara': 19990000, 'MG ZS': 15490000,
-  'Nissan Kicks': 17990000, 'Peugeot 2008': 22990000,
+  'Toyota Corolla': 23500, 'Toyota RAV4': 31500, 'Toyota Tacoma': 33500,
+  'Chevrolet Trax': 21900, 'Chevrolet Equinox': 29500, 'Honda Civic': 25500,
+  'Honda CR-V': 31000, 'Hyundai Elantra': 22500, 'Hyundai Tucson': 29900,
+  'Ford F-150': 41000, 'Ford Explorer': 41500, 'Kia Sportage': 29500,
+  'Nissan Rogue': 30500, 'Jeep Grand Cherokee': 39000,
 };
 
 // Public columns (same as data/leads.csv) + internal columns holding personal data.
-const PUBLIC_COLS = ['lead_id', 'lead_date', 'month', 'period', 'channel', 'brand', 'model', 'price_clp', 'district',
-  'salesperson', 'contacted', 'hours_to_first_contact', 'test_drive', 'quote', 'sale', 'sale_date', 'margin_clp'];
+const PUBLIC_COLS = ['lead_id', 'lead_date', 'month', 'period', 'channel', 'brand', 'model', 'price_usd', 'city',
+  'salesperson', 'contacted', 'hours_to_first_contact', 'test_drive', 'quote', 'sale', 'sale_date', 'gross_profit_usd'];
 const INTERNAL_COLS = ['status', 'contact_date', 'alert', 'name', 'phone', 'email', 'payment', 'trade_in', 'comment'];
 const COLUMNS = PUBLIC_COLS.concat(INTERNAL_COLS);
 const STATUSES = ['New', 'Contacted', 'Test drive', 'Quote', 'Sold', 'Lost'];
@@ -50,7 +51,7 @@ function setup() {
   if (!ss.getSheetByName(CONFIG.SALESPEOPLE_SHEET)) {
     const s = ss.insertSheet(CONFIG.SALESPEOPLE_SHEET);
     s.getRange(1, 1, 3, 3).setValues([['name', 'email', 'active'],
-      ['Camila Rojas', 'camila@example.com', true], ['Matias Soto', 'matias@example.com', true]]);
+      ['Emily Johnson', 'emily@example.com', true], ['Michael Carter', 'michael@example.com', true]]);
   }
 
   ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'checkSLA').forEach(t => ScriptApp.deleteTrigger(t));
@@ -77,9 +78,9 @@ function doPost(e) {
     const row = {
       lead_id: id, lead_date: Utilities.formatDate(now, tz, 'yyyy-MM-dd HH:mm'), month: Utilities.formatDate(now, tz, 'yyyy-MM'),
       period: 'after', channel: d.channel, brand: brand, model: d.model.substring(brand.length + 1) || d.model,
-      price_clp: PRICES[d.model] || '', district: d.district || '', salesperson: salesperson.name,
+      price_usd: PRICES[d.model] || '', city: d.city || '', salesperson: salesperson.name,
       contacted: walkIn ? 'yes' : 'no', hours_to_first_contact: walkIn ? 0.1 : '',
-      test_drive: 'no', quote: 'no', sale: 'no', sale_date: '', margin_clp: '',
+      test_drive: 'no', quote: 'no', sale: 'no', sale_date: '', gross_profit_usd: '',
       status: walkIn ? 'Contacted' : 'New', contact_date: '', alert: 0,
       name: d.name, phone: d.phone, email: d.email, payment: d.payment || '', trade_in: d.trade_in || '', comment: d.comment || '',
     };
@@ -171,7 +172,7 @@ function onEdit(e) {
   if (status === 'Sold') {
     set('sale', 'yes');
     set('sale_date', Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd'));
-    if (get('price_clp')) set('margin_clp', Math.round(get('price_clp') * CONFIG.ESTIMATED_MARGIN));
+    if (get('price_usd')) set('gross_profit_usd', Math.round(get('price_usd') * CONFIG.ESTIMATED_GROSS));
   }
 }
 

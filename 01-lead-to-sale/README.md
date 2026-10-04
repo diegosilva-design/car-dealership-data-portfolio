@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Company** | Andes Motors (fictional) · Santiago, Chile · 6 salespeople · ~500 leads per month |
+| **Company** | Redwood Auto Group (fictional) · Dallas–Fort Worth, Texas · 6 salespeople · ~500 leads per month |
 | **Problem** | *"We get lots of interested customers, but we sell very few cars."* |
 | **My role** | Process diagnosis, workflow redesign, implementation and measurement |
 | **Tools** | Mermaid (process maps) · HTML/JS (form) · Google Apps Script + Sheets (automation) · Chart.js (dashboard) |
@@ -24,7 +24,7 @@
 | Lead → sale conversion | 6.8% | **10.7%** |
 | Sales per month | 34 | **55** |
 
-**Estimated value (base scenario):** ~**CLP 12.9M in additional margin per month**, for ~40 hours of implementation and CLP 0 in licenses.
+**Estimated value (base scenario):** ~**$27K in additional gross profit per month (~$327K per year)**, for ~40 hours of implementation and no new software licenses.
 
 ## Walk through the case
 

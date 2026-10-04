@@ -1,4 +1,4 @@
-# Generates SYNTHETIC lead data for "Andes Motors" (a fictional car dealership in Santiago, Chile).
+# Generates SYNTHETIC lead data for "Redwood Auto Group" (a fictional car dealership in Dallas-Fort Worth, Texas).
 # Jan-Jun 2026 = current process (AS-IS) | Jul-Sep 2026 = pilot of the proposed workflow (TO-BE).
 # Usage:  powershell -ExecutionPolicy Bypass -File data\generate_data.ps1
 # Output: data\leads.csv and data\leads.js (same CSV wrapped so the dashboard opens without a server).
@@ -17,35 +17,36 @@ function Pick($items) {
 function Chance($p) { return $rnd.NextDouble() -lt $p }
 
 $channels = @(
-    @('WhatsApp', 25), @('Website', 22), @('Instagram', 15), @('Chileautos', 13),
+    @('Text/SMS', 25), @('Website', 22), @('Instagram', 15), @('CarGurus', 13),
     @('Facebook', 10), @('Phone', 8), @('Walk-in', 7)
 )
 # Probability that a lead gets contacted in the CURRENT process, by channel
-$contactBefore = @{ WhatsApp = 0.72; Website = 0.82; Instagram = 0.60; Chileautos = 0.80; Facebook = 0.65; Phone = 0.88; 'Walk-in' = 1.0 }
+$contactBefore = @{ 'Text/SMS' = 0.72; Website = 0.82; Instagram = 0.60; CarGurus = 0.80; Facebook = 0.65; Phone = 0.88; 'Walk-in' = 1.0 }
 
+# Approximate starting MSRP in USD
 $models = @(
-    @(@('Toyota', 'Yaris', 15990000), 12), @(@('Toyota', 'Corolla Cross', 24990000), 9),
-    @(@('Toyota', 'Hilux', 32990000), 7), @(@('Chevrolet', 'Groove', 11990000), 10),
-    @(@('Chevrolet', 'Tracker', 18490000), 7), @(@('Hyundai', 'Accent', 13990000), 8),
-    @(@('Hyundai', 'Tucson', 27990000), 6), @(@('Kia', 'Soluto', 11490000), 8),
-    @(@('Kia', 'Sportage', 26990000), 7), @(@('Suzuki', 'Swift', 12490000), 9),
-    @(@('Suzuki', 'Vitara', 19990000), 5), @(@('MG', 'ZS', 15490000), 6),
-    @(@('Nissan', 'Kicks', 17990000), 4), @(@('Peugeot', '2008', 22990000), 2)
+    @(@('Toyota', 'Corolla', 23500), 12), @(@('Toyota', 'RAV4', 31500), 9),
+    @(@('Toyota', 'Tacoma', 33500), 7), @(@('Chevrolet', 'Trax', 21900), 10),
+    @(@('Chevrolet', 'Equinox', 29500), 7), @(@('Honda', 'Civic', 25500), 8),
+    @(@('Honda', 'CR-V', 31000), 6), @(@('Hyundai', 'Elantra', 22500), 8),
+    @(@('Hyundai', 'Tucson', 29900), 7), @(@('Ford', 'F-150', 41000), 9),
+    @(@('Ford', 'Explorer', 41500), 5), @(@('Kia', 'Sportage', 29500), 6),
+    @(@('Nissan', 'Rogue', 30500), 4), @(@('Jeep', 'Grand Cherokee', 39000), 2)
 )
-$districts = @(
-    @('Maipu', 14), @('Puente Alto', 13), @('La Florida', 11), @('Las Condes', 9), @('Nunoa', 8),
-    @('Providencia', 6), @('Santiago', 8), @('San Bernardo', 7), @('Penalolen', 7),
-    @('Quilicura', 6), @('Pudahuel', 6), @('Vitacura', 5)
+$cities = @(
+    @('Dallas', 14), @('Fort Worth', 13), @('Arlington', 11), @('Plano', 9), @('Irving', 8),
+    @('Frisco', 6), @('Garland', 8), @('Grand Prairie', 7), @('McKinney', 7),
+    @('Mesquite', 6), @('Richardson', 6), @('Denton', 5)
 )
 # Fictional salespeople. "followUp" = how well they follow up on leads in the current process.
-$salespeople  = @('Camila Rojas', 'Matias Soto', 'Valentina Munoz', 'Benjamin Diaz', 'Francisca Reyes', 'Tomas Vargas')
-$weightBefore = @{ 'Camila Rojas' = 24; 'Matias Soto' = 22; 'Valentina Munoz' = 18; 'Benjamin Diaz' = 16; 'Francisca Reyes' = 12; 'Tomas Vargas' = 8 }
-$followUp     = @{ 'Camila Rojas' = 1.05; 'Matias Soto' = 0.85; 'Valentina Munoz' = 1.08; 'Benjamin Diaz' = 0.95; 'Francisca Reyes' = 1.1; 'Tomas Vargas' = 0.9 }
+$salespeople  = @('Emily Johnson', 'Michael Carter', 'Sarah Mitchell', 'David Nguyen', 'Jessica Ramirez', 'Chris Walker')
+$weightBefore = @{ 'Emily Johnson' = 24; 'Michael Carter' = 22; 'Sarah Mitchell' = 18; 'David Nguyen' = 16; 'Jessica Ramirez' = 12; 'Chris Walker' = 8 }
+$followUp     = @{ 'Emily Johnson' = 1.05; 'Michael Carter' = 0.85; 'Sarah Mitchell' = 1.08; 'David Nguyen' = 0.95; 'Jessica Ramirez' = 1.1; 'Chris Walker' = 0.9 }
 
 $leadsPerMonth = @{ 1 = 512; 2 = 468; 3 = 534; 4 = 497; 5 = 521; 6 = 489; 7 = 506; 8 = 528; 9 = 515 }
 
 $sb = New-Object System.Text.StringBuilder
-[void]$sb.AppendLine('lead_id,lead_date,month,period,channel,brand,model,price_clp,district,salesperson,contacted,hours_to_first_contact,test_drive,quote,sale,sale_date,margin_clp')
+[void]$sb.AppendLine('lead_id,lead_date,month,period,channel,brand,model,price_usd,city,salesperson,contacted,hours_to_first_contact,test_drive,quote,sale,sale_date,gross_profit_usd')
 
 $id = 0; $rr = 0
 foreach ($month in 1..9) {
@@ -57,7 +58,7 @@ foreach ($month in 1..9) {
         $date = (Get-Date -Year 2026 -Month $month -Day ($rnd.Next(1, $daysInMonth + 1)) -Hour ($rnd.Next(8, 22)) -Minute ($rnd.Next(0, 60)) -Second 0)
         $channel = Pick $channels
         $m = Pick $models
-        $district = Pick $districts
+        $city = Pick $cities
 
         # Assignment: today "whoever grabs the lead first"; in the pilot, automatic round-robin
         if ($after) { $sp = $salespeople[$rr % $salespeople.Count]; $rr++ }
@@ -96,16 +97,16 @@ foreach ($month in 1..9) {
             if ($quote) { $sale = Chance 0.36 }
         }
 
-        $saleDate = ''; $margin = ''
+        $saleDate = ''; $gross = ''
         if ($sale) {
             $saleDate = $date.AddDays($rnd.Next(3, 25)).ToString('yyyy-MM-dd')
-            $margin = [string][Math]::Round($m[2] * (0.06 + $rnd.NextDouble() * 0.02))
+            $gross = [string][Math]::Round($m[2] * (0.08 + $rnd.NextDouble() * 0.03))
         }
         $yn = { param($b) if ($b) { 'yes' } else { 'no' } }
         $row = @(
             ('L{0:00000}' -f $id), $date.ToString('yyyy-MM-dd HH:mm'), $date.ToString('yyyy-MM'), $period,
-            $channel, $m[0], $m[1], $m[2], $district, $sp,
-            (& $yn $contacted), $hours, (& $yn $td), (& $yn $quote), (& $yn $sale), $saleDate, $margin
+            $channel, $m[0], $m[1], $m[2], $city, $sp,
+            (& $yn $contacted), $hours, (& $yn $td), (& $yn $quote), (& $yn $sale), $saleDate, $gross
         ) -join ','
         [void]$sb.AppendLine($row)
     }

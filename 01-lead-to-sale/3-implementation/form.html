@@ -60,41 +60,41 @@
 <body>
 <main>
   <h1>Get a quote for your next car</h1>
-  <p class="sub">Andes Motors · A sales advisor will contact you within 1 business hour.</p>
+  <p class="sub">Redwood Auto Group · A sales advisor will contact you within 1 business hour.</p>
 
   <form id="form" novalidate>
     <div class="row">
       <label>Full name <input name="name" required autocomplete="name"></label>
-      <label>Phone <small>(WhatsApp)</small> <input name="phone" type="tel" required placeholder="+56 9 1234 5678" autocomplete="tel"></label>
+      <label>Mobile phone <input name="phone" type="tel" required placeholder="(555) 123-4567" autocomplete="tel"></label>
     </div>
     <div class="row">
       <label>Email <input name="email" type="email" required autocomplete="email"></label>
-      <label>District
-        <select name="district" required>
+      <label>City
+        <select name="city" required>
           <option value="">Select…</option>
-          <option>Las Condes</option><option>La Florida</option><option>Maipu</option><option>Nunoa</option>
-          <option>Penalolen</option><option>Providencia</option><option>Pudahuel</option><option>Puente Alto</option>
-          <option>Quilicura</option><option>San Bernardo</option><option>Santiago</option><option>Vitacura</option><option>Other</option>
+          <option>Arlington</option><option>Dallas</option><option>Denton</option><option>Fort Worth</option><option>Frisco</option><option>Garland</option>
+          <option>Grand Prairie</option><option>Irving</option><option>McKinney</option><option>Mesquite</option>
+          <option>Plano</option><option>Richardson</option><option>Other</option>
         </select>
       </label>
     </div>
     <label>Model you're interested in
       <select name="model" required>
         <option value="">Select…</option>
-        <optgroup label="Toyota"><option>Toyota Yaris</option><option>Toyota Corolla Cross</option><option>Toyota Hilux</option></optgroup>
-        <optgroup label="Chevrolet"><option>Chevrolet Groove</option><option>Chevrolet Tracker</option></optgroup>
-        <optgroup label="Hyundai"><option>Hyundai Accent</option><option>Hyundai Tucson</option></optgroup>
-        <optgroup label="Kia"><option>Kia Soluto</option><option>Kia Sportage</option></optgroup>
-        <optgroup label="Suzuki"><option>Suzuki Swift</option><option>Suzuki Vitara</option></optgroup>
-        <optgroup label="Other"><option>MG ZS</option><option>Nissan Kicks</option><option>Peugeot 2008</option><option>Not sure yet</option></optgroup>
+        <optgroup label="Toyota"><option>Toyota Corolla</option><option>Toyota RAV4</option><option>Toyota Tacoma</option></optgroup>
+        <optgroup label="Chevrolet"><option>Chevrolet Trax</option><option>Chevrolet Equinox</option></optgroup>
+        <optgroup label="Ford"><option>Ford F-150</option><option>Ford Explorer</option></optgroup>
+        <optgroup label="Honda"><option>Honda Civic</option><option>Honda CR-V</option></optgroup>
+        <optgroup label="Hyundai"><option>Hyundai Elantra</option><option>Hyundai Tucson</option></optgroup>
+        <optgroup label="Other"><option>Jeep Grand Cherokee</option><option>Kia Sportage</option><option>Nissan Rogue</option><option>Not sure yet</option></optgroup>
       </select>
     </label>
     <fieldset>
       <legend>How would you pay?</legend>
       <div class="options">
         <label><input type="radio" name="payment" value="Cash" required> Cash</label>
-        <label><input type="radio" name="payment" value="Car loan"> Car loan</label>
-        <label><input type="radio" name="payment" value="Leasing"> Leasing</label>
+        <label><input type="radio" name="payment" value="Financing"> Financing</label>
+        <label><input type="radio" name="payment" value="Lease"> Lease</label>
         <label><input type="radio" name="payment" value="Not sure"> Not sure yet</label>
       </div>
     </fieldset>
@@ -108,13 +108,13 @@
     <label>How did you hear about us?
       <select name="channel" required>
         <option value="">Select…</option>
-        <option>Website</option><option>WhatsApp</option><option>Instagram</option><option>Facebook</option>
-        <option>Chileautos</option><option>Phone</option><option>Walk-in</option>
+        <option>Website</option><option>Text/SMS</option><option>Instagram</option><option>Facebook</option>
+        <option>CarGurus</option><option>Phone</option><option>Walk-in</option>
       </select>
     </label>
     <label>Comments <small>(optional)</small> <textarea name="comment" rows="3"></textarea></label>
     <label class="consent"><input type="checkbox" name="consent" required>
-      I agree that Andes Motors may use my details only to respond to this quote request.</label>
+      I agree that Redwood Auto Group may contact me by phone, text or email about this request. Message and data rates may apply. Reply STOP to opt out.</label>
     <p class="error" id="error" role="alert"></p>
     <button type="submit" id="submit">Contact me</button>
   </form>
@@ -122,7 +122,7 @@
   <div class="ok" id="ok" hidden>
     <h2>Done! We received your request</h2>
     <dl id="summary"></dl>
-    <p>We'll message you on WhatsApp or call you within 1 business hour.</p>
+    <p>We'll text or call you within 1 business hour.</p>
   </div>
 
   <p class="demo" id="demo"></p>
@@ -133,7 +133,7 @@
   // If left empty, the form runs in DEMO MODE: it saves to this browser and simulates the assignment.
   const APPS_SCRIPT_URL = "";
 
-  const DEMO_SALESPEOPLE = ['Camila Rojas', 'Matias Soto', 'Valentina Munoz', 'Benjamin Diaz', 'Francisca Reyes', 'Tomas Vargas'];
+  const DEMO_SALESPEOPLE = ['Emily Johnson', 'Michael Carter', 'Sarah Mitchell', 'David Nguyen', 'Jessica Ramirez', 'Chris Walker'];
   const $ = (id) => document.getElementById(id);
   if (!APPS_SCRIPT_URL) $('demo').textContent = 'Demo mode: responses are stored only in this browser. Fictional company, portfolio project.';
 
@@ -144,7 +144,7 @@
       return bad.type === 'checkbox' ? 'Please agree to the use of your details to continue.' : 'Please check the highlighted fields: something is missing or invalid.';
     }
     const digits = form.phone.value.replace(/\D/g, '');
-    if (digits.length < 8) { form.phone.focus(); return 'The phone number looks incomplete.'; }
+    if (digits.length < 10) { form.phone.focus(); return 'The phone number looks incomplete.'; }
     return '';
   }
 
@@ -182,7 +182,7 @@
         } catch (e) {}
       }
     } catch (e) {
-      $('error').textContent = "We couldn't send your request. Please try again or message us on WhatsApp.";
+      $('error').textContent = "We couldn't send your request. Please try again or call us.";
       $('submit').disabled = false;
       return;
     }

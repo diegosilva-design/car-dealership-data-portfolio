@@ -82,7 +82,7 @@
 <main>
   <header>
     <h1>Lead → Sale: current process vs. proposed workflow</h1>
-    <p>Andes Motors · Jan–Jun 2026 (current process) vs. Jul–Sep 2026 (pilot of the proposed workflow)</p>
+    <p>Redwood Auto Group · Jan–Jun 2026 (current process) vs. Jul–Sep 2026 (pilot of the proposed workflow)</p>
     <p class="note" id="source">Synthetic data generated for this portfolio. The company is fictional.</p>
   </header>
 
@@ -181,6 +181,7 @@
       salesPerMonth: sales.length / months,
       uncontactedPerMonth: (n - c.length) / months,
       median: hours.length ? hours[Math.floor(hours.length / 2)] : NaN,
+      grossPerMonth: sales.reduce((s, r) => s + (+r.gross_profit_usd || 0), 0) / months,
     };
   }
   function filtered() {
@@ -232,6 +233,7 @@
       kpi('Leads contacted', ma.contact, mb.contact, x => pct(x, 0), true) +
       kpi('Median time to first contact', ma.median, mb.median, x => isNaN(x) ? '—' : num(x, 1) + ' h', false) +
       kpi('Sales per month', ma.salesPerMonth, mb.salesPerMonth, x => num(x, 1), true) +
+      kpi('Gross profit per month', ma.grossPerMonth, mb.grossPerMonth, x => '$' + num(x / 1000, 0) + 'K', true) +
       kpi('Uncontacted leads per month', ma.uncontactedPerMonth, mb.uncontactedPerMonth, x => num(x, 0), false);
 
     // Funnel

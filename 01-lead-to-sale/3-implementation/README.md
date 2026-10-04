@@ -2,7 +2,7 @@
 
 | File | What it is |
 |---|---|
-| [`form.html`](form.html) | Quote request form: filled in by customers on the website, or by reception/salespeople for WhatsApp, social media, phone and walk-in leads |
+| [`form.html`](form.html) | Quote request form: filled in by customers on the website, or by reception/salespeople for text, social media, phone and walk-in leads |
 | [`apps-script.gs`](apps-script.gs) | Automation: saves the lead, assigns it, notifies, checks the SLA every 15 min and serves data to the dashboard |
 
 ## Demo mode (no setup needed)
@@ -30,12 +30,12 @@ Open `form.html` in a browser. If the `APPS_SCRIPT_URL` constant is empty, the f
 1. Submit the form → a row appears in **Leads** with status `New`, and the assigned salesperson gets an email.
 2. Wait over 1 hour (or lower `SLA_REMINDER_HOURS` to `0.05` to test) → the reminder arrives.
 3. Change the status to `Contacted` → `contact_date`, `contacted` and `hours_to_first_contact` fill in.
-4. Move on to `Test drive`, `Quote` and `Sold` → the funnel updates itself and the margin is calculated.
+4. Move on to `Test drive`, `Quote` and `Sold` → the funnel updates itself and the gross profit is estimated.
 5. Open the dashboard → the new lead shows up.
 
 ## Design decisions
 
-- **Google Sheets, not a CRM:** many mid-size dealerships have no CRM, or don't use it well. A spreadsheet is familiar, free and enough to prove the workflow's value before investing in a CRM.
+- **Google Sheets as a prototype, not a CRM replacement:** most US dealerships already have a CRM, but texts, social DMs and walk-ins often never make it in. A spreadsheet proves the workflow in days. Once it works, the same rules (round-robin, response-time alerts) get configured in the dealership's CRM.
 - **Round-robin with `LockService`:** two leads arriving at the same moment can't be assigned to the same salesperson by mistake.
 - **`doGet` only serves columns without personal data:** the dashboard can be public without exposing names, phone numbers or emails.
 - **Form uses `Content-Type: text/plain`:** avoids Apps Script's CORS block without needing a middle server.
