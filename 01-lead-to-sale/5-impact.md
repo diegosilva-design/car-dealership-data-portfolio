@@ -52,4 +52,4 @@ The full pilot result is **not attributed to the new workflow alone**. Seasonali
 2. Assign leads based on each salesperson's current workload instead of plain round-robin.
 3. Analyze loss reasons: which quotes don't close, and why.
 
-⬅️ [4 · Measurement (dashboard)](4-measurement/dashboard.html) · 🏠 [Back to the case](README.md)
+⬅️ [4 · Measurement (dashboard)](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/dashboard.html) · 🏠 [Back to the case](README.md)

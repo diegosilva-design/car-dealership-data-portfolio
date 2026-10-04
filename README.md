@@ -28,10 +28,10 @@ Method details and an express-diagnosis questionnaire: [docs/methodology.md](doc
 
 ## Live demos
 
-- 📝 [Quote request form](01-lead-to-sale/3-implementation/form.html)
-- 📊 [Lead → Sale dashboard](01-lead-to-sale/4-measurement/dashboard.html)
+- 📝 [Quote request form](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/3-implementation/form.html)
+- 📊 [Lead → Sale dashboard](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/dashboard.html)
 
-> On GitHub Pages: `https://<your-username>.github.io/car-dealership-data-portfolio/`
+> Both demos run live on GitHub Pages. The dashboard uses synthetic data; the form runs in demo mode.
 
 ## Tools
 

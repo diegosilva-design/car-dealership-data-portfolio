@@ -2,7 +2,7 @@
 
 | File | What it is |
 |---|---|
-| [`form.html`](form.html) | Quote request form: filled in by customers on the website, or by reception/salespeople for text, social media, phone and walk-in leads |
+| [`form.html`](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/3-implementation/form.html) | Quote request form: filled in by customers on the website, or by reception/salespeople for text, social media, phone and walk-in leads |
 | [`apps-script.gs`](apps-script.gs) | Automation: saves the lead, assigns it, notifies, checks the SLA every 15 min and serves data to the dashboard |
 
 ## Demo mode (no setup needed)

@@ -46,12 +46,12 @@ flowchart TD
 
 | Finding | Proposed change | Tool | Owner |
 |---|---|---|---|
-| F1 · Leads with no reply | Single log for every lead + visible status ("New") | [Form](3-implementation/form.html) + Sheets | Reception / salesperson |
+| F1 · Leads with no reply | Single log for every lead + visible status ("New") | [Form](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/3-implementation/form.html) + Sheets | Reception / salesperson |
 | F2 · Slow response | Contact target of < 1 h, with instant notice and automatic reminder | [Apps Script](3-implementation/apps-script.gs) | Assigned salesperson |
 | F3 · Slowness costs sales | Escalation to the manager at 4 h, with reassignment | Apps Script (every 15 min) | Sales manager |
 | F4 · Social media has no owner | Social leads go through the same log; reception checks them 3 times a day | Form | Reception |
 | F5 · Uneven workload | Round-robin assignment across active salespeople (can be paused for vacations) | Apps Script | Automatic |
-| F6 · No data | Funnel by status (New → Contacted → Test drive → Quote → Sold/Lost) | Sheets + [Dashboard](4-measurement/dashboard.html) | Sales manager |
+| F6 · No data | Funnel by status (New → Contacted → Test drive → Quote → Sold/Lost) | Sheets + [Dashboard](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/dashboard.html) | Sales manager |
 
 ## 2.4 Service levels (SLA)
 

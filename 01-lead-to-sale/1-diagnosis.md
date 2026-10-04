@@ -54,7 +54,7 @@ flowchart TD
 | **F5** | **Workload is unevenly spread** | 2 salespeople take **45%** of leads ("first come, first served"). Three salespeople contact fewer than 70% of the leads they take |
 | **F6** | **No data to manage with** | Nobody records why a sale is lost, and the sales manager has no daily visibility |
 
-> 📊 All these figures can be explored in the [dashboard](4-measurement/dashboard.html).
+> 📊 All these figures can be explored in the [dashboard](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/dashboard.html).
 
 ## 1.4 Root cause
 
