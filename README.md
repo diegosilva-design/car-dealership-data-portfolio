@@ -2,7 +2,7 @@
 
 **I find where your processes lose time and money, propose a better workflow, implement it with simple tools, and prove the impact with data.**
 
-👤 **Diego Silva** · [LinkedIn](https://www.linkedin.com/in/your-profile) · [Email](mailto:diegosilvamancilla@gmail.com)
+👤 **Diego Silva** · [Email](mailto:diegosilvamancilla@gmail.com)
 
 ---
 
