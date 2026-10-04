@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lead to Sale Dashboard</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-after: #2a78d6;    /* slot 1: the focus (proposed workflow) */
+    --series-before: #a9a79f;   /* gray: the reference (current process) */
+    --good: #006300;
+    --critical: #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19; --text-primary: #ffffff; --text-secondary: #c3c2b7;
+      --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+      --series-after: #3987e5; --series-before: #6f6e68; --good: #0ca30c; --critical: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --text-primary: #ffffff; --text-secondary: #c3c2b7;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --series-after: #3987e5; --series-before: #6f6e68; --good: #0ca30c; --critical: #e66767;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--text-primary);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
+  header h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--text-secondary); }
+  .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 24px 0 20px; }
+  .filters label { display: flex; flex-direction: column; font-size: 12px; color: var(--text-secondary); gap: 4px; }
+  select {
+    font: inherit; padding: 6px 10px; border-radius: 8px; min-width: 180px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-primary);
+  }
+  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary); margin-left: auto; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .kpi .title { font-size: 13px; color: var(--text-secondary); }
+  .kpi .value { font-size: 30px; font-weight: 600; margin: 4px 0 2px; }
+  .kpi .before { font-size: 13px; color: var(--muted); }
+  .kpi .delta { font-size: 13px; font-weight: 600; }
+  .delta.good { color: var(--good); } .delta.bad { color: var(--critical); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 12px; margin-top: 12px; }
+  @media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } }
+  .card h2 { font-size: 16px; margin: 0 0 2px; }
+  .card .sub { font-size: 13px; color: var(--text-secondary); margin: 0 0 12px; }
+  .canvas { position: relative; height: 280px; }
+  .insight {
+    margin-top: 12px; font-size: 13px; color: var(--text-secondary);
+    border-left: 3px solid var(--series-after); padding-left: 10px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--grid); }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+  .alert { color: var(--critical); font-weight: 600; }
+  footer { margin-top: 28px; font-size: 13px; color: var(--muted); }
+  a { color: var(--series-after); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Lead → Sale: current process vs. proposed workflow</h1>
+    <p>Andes Motors · Jan–Jun 2026 (current process) vs. Jul–Sep 2026 (pilot of the proposed workflow)</p>
+    <p class="note" id="source">Synthetic data generated for this portfolio. The company is fictional.</p>
+  </header>
+
+  <div class="filters">
+    <label>Channel <select id="f-channel"><option value="">All channels</option></select></label>
+    <label>Salesperson <select id="f-salesperson"><option value="">Whole team</option></select></label>
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:var(--series-before)"></i>Current process</span>
+      <span><i style="background:var(--series-after)"></i>Proposed workflow (pilot)</span>
+    </div>
+  </div>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid2">
+    <div class="card">
+      <h2>Conversion funnel</h2>
+      <p class="sub">% of leads reaching each stage</p>
+      <div class="canvas"><canvas id="c-funnel" role="img" aria-label="Conversion funnel before and after"></canvas></div>
+      <p class="insight" id="i-funnel"></p>
+    </div>
+    <div class="card">
+      <h2>Speed to lead sells cars</h2>
+      <p class="sub">Lead-to-sale conversion by hours to first contact (current process)</p>
+      <div class="canvas"><canvas id="c-speed" role="img" aria-label="Conversion by time to first contact"></canvas></div>
+      <p class="insight" id="i-speed"></p>
+    </div>
+    <div class="card">
+      <h2>Sales per month</h2>
+      <p class="sub">Units sold from leads received that month</p>
+      <div class="canvas"><canvas id="c-month" role="img" aria-label="Sales per month"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Leads contacted by channel</h2>
+      <p class="sub">% of leads that received at least one contact</p>
+      <div class="canvas"><canvas id="c-channel" role="img" aria-label="Contact rate by channel"></canvas></div>
+      <p class="insight" id="i-channel"></p>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:12px">
+    <h2>Sales team</h2>
+    <p class="sub">With automatic assignment the workload is even and nobody piles up unattended leads</p>
+    <div class="table-wrap"><table id="t-salespeople"></table></div>
+  </section>
+
+  <footer>
+    Part of the <a href="../README.md">Lead → Sale</a> case · Process & data analysis portfolio.
+  </footer>
+</main>
+
+<!-- Data: if DATA_SOURCE_URL holds the Apps Script web app URL (doGet), data is read live; otherwise the sample file is used. -->
+<script>const DATA_SOURCE_URL = "";</script>
+<script src="../../data/leads.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const pct = (x, d = 1) => (x * 100).toFixed(d) + '%';
+  const num = (x, d = 0) => x.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+
+  // ---------- Load data ----------
+  function parseCSV(txt) {
+    const [head, ...rows] = txt.trim().split(/\r?\n/);
+    const cols = head.split(',');
+    return rows.map(r => { const v = r.split(','); const o = {}; cols.forEach((c, i) => o[c] = v[i]); return o; });
+  }
+  let leads;
+  if (DATA_SOURCE_URL) {
+    try {
+      leads = await (await fetch(DATA_SOURCE_URL)).json();
+      $('source').textContent = 'Live data from Google Sheets.';
+    } catch (e) { console.warn('Could not read the live source, using sample data', e); }
+  }
+  if (!leads) leads = parseCSV(window.LEADS_CSV);
+
+  const channels = [...new Set(leads.map(l => l.channel))].sort();
+  const salespeople = [...new Set(leads.map(l => l.salesperson))].sort();
+  channels.forEach(c => $('f-channel').add(new Option(c, c)));
+  salespeople.forEach(s => $('f-salesperson').add(new Option(s, s)));
+
+  // ---------- Metrics ----------
+  function metrics(rows) {
+    const n = rows.length;
+    const months = new Set(rows.map(r => r.month)).size || 1;
+    const c = rows.filter(r => r.contacted === 'yes');
+    const hours = c.filter(r => r.channel !== 'Walk-in').map(r => +r.hours_to_first_contact).sort((a, b) => a - b);
+    const sales = rows.filter(r => r.sale === 'yes');
+    return {
+      n, months,
+      contact: n ? c.length / n : 0,
+      td: n ? rows.filter(r => r.test_drive === 'yes').length / n : 0,
+      quote: n ? rows.filter(r => r.quote === 'yes').length / n : 0,
+      conv: n ? sales.length / n : 0,
+      salesPerMonth: sales.length / months,
+      uncontactedPerMonth: (n - c.length) / months,
+      median: hours.length ? hours[Math.floor(hours.length / 2)] : NaN,
+    };
+  }
+  function filtered() {
+    const fc = $('f-channel').value, fs = $('f-salesperson').value;
+    return leads.filter(l => (!fc || l.channel === fc) && (!fs || l.salesperson === fs));
+  }
+
+  // ---------- KPIs ----------
+  function kpi(title, after, before, fmt, higherIsBetter) {
+    const delta = after - before;
+    const good = higherIsBetter ? delta >= 0 : delta <= 0;
+    const arrow = delta >= 0 ? '▲' : '▼';
+    const rel = before ? Math.abs(delta / before) : 0;
+    return `<div class="card kpi"><div class="title">${title}</div>
+      <div class="value">${fmt(after)}</div>
+      <div class="before">Before: ${fmt(before)}</div>
+      <div class="delta ${good ? 'good' : 'bad'}">${arrow} ${pct(rel, 0)} ${good ? 'better' : 'worse'}</div></div>`;
+  }
+
+  // ---------- Charts ----------
+  const charts = {};
+  function base(extra = {}) {
+    return {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { display: false }, tooltip: { padding: 10, cornerRadius: 8 } },
+      ...extra,
+    };
+  }
+  function axes(horizontal, fmtValue) {
+    const value = { grid: { color: css('--grid') }, border: { color: css('--axis') }, ticks: { color: css('--muted'), callback: fmtValue }, beginAtZero: true };
+    const cat = { grid: { display: false }, border: { color: css('--axis') }, ticks: { color: css('--text-secondary') } };
+    return horizontal ? { x: value, y: cat } : { x: cat, y: value };
+  }
+  function draw(id, config) {
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart($(id), config);
+  }
+  const bar = { borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22, categoryPercentage: 0.7, barPercentage: 0.9 };
+
+  function render() {
+    const rows = filtered();
+    const B = rows.filter(r => r.period === 'before');
+    const A = rows.filter(r => r.period === 'after');
+    const mb = metrics(B), ma = metrics(A);
+    const cB = css('--series-before'), cA = css('--series-after');
+
+    $('kpis').innerHTML =
+      kpi('Lead → sale conversion', ma.conv, mb.conv, x => pct(x), true) +
+      kpi('Leads contacted', ma.contact, mb.contact, x => pct(x, 0), true) +
+      kpi('Median time to first contact', ma.median, mb.median, x => isNaN(x) ? '—' : num(x, 1) + ' h', false) +
+      kpi('Sales per month', ma.salesPerMonth, mb.salesPerMonth, x => num(x, 1), true) +
+      kpi('Uncontacted leads per month', ma.uncontactedPerMonth, mb.uncontactedPerMonth, x => num(x, 0), false);
+
+    // Funnel
+    const stages = ['Lead', 'Contacted', 'Test drive', 'Quote', 'Sale'];
+    const vb = [1, mb.contact, mb.td, mb.quote, mb.conv], va = [1, ma.contact, ma.td, ma.quote, ma.conv];
+    draw('c-funnel', {
+      type: 'bar',
+      data: { labels: stages, datasets: [
+        { label: 'Current process', data: vb, backgroundColor: cB, ...bar },
+        { label: 'Proposed workflow', data: va, backgroundColor: cA, ...bar },
+      ] },
+      options: base({ indexAxis: 'y', scales: axes(true, v => Math.round(v * 100) + '%'),
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${pct(c.raw)}` } } } }),
+    });
+    $('i-funnel').textContent = mb.n && ma.n
+      ? `The biggest loss happens before the first contact: ${pct(1 - mb.contact, 0)} of leads never got a reply in the current process.`
+      : '';
+
+    // Speed (current process only, excluding walk-ins)
+    const bands = [['< 1 h', h => h < 1], ['1 – 24 h', h => h >= 1 && h <= 24], ['> 24 h', h => h > 24]];
+    const cont = B.filter(r => r.contacted === 'yes' && r.channel !== 'Walk-in');
+    const speed = bands.map(([, f]) => { const g = cont.filter(r => f(+r.hours_to_first_contact)); return { n: g.length, conv: g.length ? g.filter(r => r.sale === 'yes').length / g.length : 0 }; });
+    draw('c-speed', {
+      type: 'bar',
+      data: { labels: bands.map(b => b[0]), datasets: [{ label: 'Conversion', data: speed.map(s => s.conv), backgroundColor: cA, ...bar, maxBarThickness: 56 }] },
+      options: base({ scales: axes(false, v => (v * 100).toFixed(0) + '%'),
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `Conversion: ${pct(c.raw)} (${num(speed[c.dataIndex].n)} leads)` } } } }),
+    });
+    const late = speed[2].n / (cont.length || 1);
+    $('i-speed').textContent = speed[0].conv && speed[2].conv
+      ? `A lead contacted within 1 hour converts ${num(speed[0].conv / speed[2].conv, 1)}× more than one contacted after 24 h — and today ${pct(late, 0)} of contacts arrive late.`
+      : '';
+
+    // Sales per month
+    const months = [...new Set(leads.map(l => l.month))].sort();
+    const monthName = m => new Date(m + '-15').toLocaleDateString('en-US', { month: 'short' });
+    const perMonth = months.map(m => rows.filter(r => r.month === m && r.sale === 'yes').length);
+    const monthPeriod = months.map(m => (leads.find(l => l.month === m) || {}).period);
+    draw('c-month', {
+      type: 'bar',
+      data: { labels: months.map(monthName), datasets: [{ label: 'Sales', data: perMonth, backgroundColor: monthPeriod.map(p => p === 'after' ? cA : cB), ...bar, maxBarThickness: 36, categoryPercentage: 0.8 }] },
+      options: base({ scales: axes(false, v => v),
+        plugins: { legend: { display: false }, tooltip: { callbacks: {
+          title: c => months[c[0].dataIndex] + (monthPeriod[c[0].dataIndex] === 'after' ? ' · proposed workflow' : ' · current process'),
+          label: c => `${c.raw} sales` } } } }),
+    });
+
+    // Contact rate by channel
+    const visibleChannels = $('f-channel').value ? [$('f-channel').value] : channels;
+    const contactRate = (g, ch) => { const x = g.filter(r => r.channel === ch); return x.length ? x.filter(r => r.contacted === 'yes').length / x.length : 0; };
+    const order = [...visibleChannels].sort((a, b) => contactRate(B, a) - contactRate(B, b));
+    draw('c-channel', {
+      type: 'bar',
+      data: { labels: order, datasets: [
+        { label: 'Current process', data: order.map(c => contactRate(B, c)), backgroundColor: cB, ...bar },
+        { label: 'Proposed workflow', data: order.map(c => contactRate(A, c)), backgroundColor: cA, ...bar },
+      ] },
+      options: base({ indexAxis: 'y', scales: { ...axes(true, v => Math.round(v * 100) + '%'), x: { ...axes(true).x, max: 1, ticks: { color: css('--muted'), callback: v => Math.round(v * 100) + '%' } } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${pct(c.raw, 0)}` } } } }),
+    });
+    $('i-channel').textContent = order.length > 1
+      ? `The most neglected channels were ${order.slice(0, 2).join(' and ')}: nobody owned checking them.`
+      : '';
+
+    // Salespeople table
+    const spRows = (($('f-salesperson').value) ? [$('f-salesperson').value] : salespeople).map(s => {
+      const b = metrics(B.filter(r => r.salesperson === s)), a = metrics(A.filter(r => r.salesperson === s));
+      return { s, b, a, shareB: b.n / (B.length || 1), shareA: a.n / (A.length || 1) };
+    }).sort((x, y) => y.b.n - x.b.n);
+    $('t-salespeople').innerHTML = `<thead><tr><th>Salesperson</th><th>Share of leads (before)</th><th>Share of leads (pilot)</th>
+      <th>Contacted (before)</th><th>Contacted (pilot)</th><th>Conversion (before)</th><th>Conversion (pilot)</th></tr></thead><tbody>` +
+      spRows.map(r => `<tr><td>${r.s}</td><td>${pct(r.shareB, 0)}</td><td>${pct(r.shareA, 0)}</td>
+        <td class="${r.b.contact < 0.7 ? 'alert' : ''}">${pct(r.b.contact, 0)}${r.b.contact < 0.7 ? ' ⚠' : ''}</td>
+        <td>${pct(r.a.contact, 0)}</td><td>${pct(r.b.conv)}</td><td>${pct(r.a.conv)}</td></tr>`).join('') + '</tbody>';
+  }
+
+  $('f-channel').addEventListener('change', render);
+  $('f-salesperson').addEventListener('change', render);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+  render();
+})();
+</script>
+</body>
+</html>

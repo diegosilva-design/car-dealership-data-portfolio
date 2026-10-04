@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get a Quote</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb; --text-primary: #0b0b0b; --text-secondary: #52514e;
+    --muted: #898781; --border: rgba(11,11,11,0.14); --accent: #2a78d6; --accent-ink: #ffffff;
+    --good: #006300; --critical: #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19; --text-primary: #ffffff; --text-secondary: #c3c2b7;
+      --border: rgba(255,255,255,0.14); --accent: #3987e5; --good: #0ca30c; --critical: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --text-primary: #ffffff; --text-secondary: #c3c2b7;
+    --border: rgba(255,255,255,0.14); --accent: #3987e5; --good: #0ca30c; --critical: #e66767;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--text-primary); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 620px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .sub { color: var(--text-secondary); margin: 0 0 20px; }
+  form, .ok { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+  label small { font-weight: 400; color: var(--muted); }
+  input, select, textarea {
+    display: block; width: 100%; margin-top: 5px; font: inherit; padding: 9px 11px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--page); color: var(--text-primary);
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  fieldset { border: 0; padding: 0; margin: 0 0 14px; }
+  legend { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .options label { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; margin: 0;
+    border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .options input { width: auto; margin: 0; }
+  .consent { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; font-size: 13px; color: var(--text-secondary); }
+  .consent input { width: auto; margin-top: 3px; }
+  button { font: inherit; font-weight: 600; background: var(--accent); color: var(--accent-ink); border: 0;
+    border-radius: 10px; padding: 12px 18px; width: 100%; cursor: pointer; }
+  button[disabled] { opacity: .6; cursor: wait; }
+  .error { color: var(--critical); font-size: 13px; min-height: 1em; }
+  .ok h2 { margin-top: 0; color: var(--good); }
+  .ok dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; }
+  .ok dt { color: var(--text-secondary); }
+  .demo { font-size: 13px; color: var(--muted); margin-top: 16px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Get a quote for your next car</h1>
+  <p class="sub">Andes Motors · A sales advisor will contact you within 1 business hour.</p>
+
+  <form id="form" novalidate>
+    <div class="row">
+      <label>Full name <input name="name" required autocomplete="name"></label>
+      <label>Phone <small>(WhatsApp)</small> <input name="phone" type="tel" required placeholder="+56 9 1234 5678" autocomplete="tel"></label>
+    </div>
+    <div class="row">
+      <label>Email <input name="email" type="email" required autocomplete="email"></label>
+      <label>District
+        <select name="district" required>
+          <option value="">Select…</option>
+          <option>Las Condes</option><option>La Florida</option><option>Maipu</option><option>Nunoa</option>
+          <option>Penalolen</option><option>Providencia</option><option>Pudahuel</option><option>Puente Alto</option>
+          <option>Quilicura</option><option>San Bernardo</option><option>Santiago</option><option>Vitacura</option><option>Other</option>
+        </select>
+      </label>
+    </div>
+    <label>Model you're interested in
+      <select name="model" required>
+        <option value="">Select…</option>
+        <optgroup label="Toyota"><option>Toyota Yaris</option><option>Toyota Corolla Cross</option><option>Toyota Hilux</option></optgroup>
+        <optgroup label="Chevrolet"><option>Chevrolet Groove</option><option>Chevrolet Tracker</option></optgroup>
+        <optgroup label="Hyundai"><option>Hyundai Accent</option><option>Hyundai Tucson</option></optgroup>
+        <optgroup label="Kia"><option>Kia Soluto</option><option>Kia Sportage</option></optgroup>
+        <optgroup label="Suzuki"><option>Suzuki Swift</option><option>Suzuki Vitara</option></optgroup>
+        <optgroup label="Other"><option>MG ZS</option><option>Nissan Kicks</option><option>Peugeot 2008</option><option>Not sure yet</option></optgroup>
+      </select>
+    </label>
+    <fieldset>
+      <legend>How would you pay?</legend>
+      <div class="options">
+        <label><input type="radio" name="payment" value="Cash" required> Cash</label>
+        <label><input type="radio" name="payment" value="Car loan"> Car loan</label>
+        <label><input type="radio" name="payment" value="Leasing"> Leasing</label>
+        <label><input type="radio" name="payment" value="Not sure"> Not sure yet</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Would you trade in your current car?</legend>
+      <div class="options">
+        <label><input type="radio" name="trade_in" value="yes" required> Yes</label>
+        <label><input type="radio" name="trade_in" value="no"> No</label>
+      </div>
+    </fieldset>
+    <label>How did you hear about us?
+      <select name="channel" required>
+        <option value="">Select…</option>
+        <option>Website</option><option>WhatsApp</option><option>Instagram</option><option>Facebook</option>
+        <option>Chileautos</option><option>Phone</option><option>Walk-in</option>
+      </select>
+    </label>
+    <label>Comments <small>(optional)</small> <textarea name="comment" rows="3"></textarea></label>
+    <label class="consent"><input type="checkbox" name="consent" required>
+      I agree that Andes Motors may use my details only to respond to this quote request.</label>
+    <p class="error" id="error" role="alert"></p>
+    <button type="submit" id="submit">Contact me</button>
+  </form>
+
+  <div class="ok" id="ok" hidden>
+    <h2>Done! We received your request</h2>
+    <dl id="summary"></dl>
+    <p>We'll message you on WhatsApp or call you within 1 business hour.</p>
+  </div>
+
+  <p class="demo" id="demo"></p>
+</main>
+
+<script>
+  // Paste the Apps Script web app URL here (see apps-script.gs).
+  // If left empty, the form runs in DEMO MODE: it saves to this browser and simulates the assignment.
+  const APPS_SCRIPT_URL = "";
+
+  const DEMO_SALESPEOPLE = ['Camila Rojas', 'Matias Soto', 'Valentina Munoz', 'Benjamin Diaz', 'Francisca Reyes', 'Tomas Vargas'];
+  const $ = (id) => document.getElementById(id);
+  if (!APPS_SCRIPT_URL) $('demo').textContent = 'Demo mode: responses are stored only in this browser. Fictional company, portfolio project.';
+
+  function validate(form) {
+    if (!form.checkValidity()) {
+      const bad = form.querySelector(':invalid');
+      bad.focus();
+      return bad.type === 'checkbox' ? 'Please agree to the use of your details to continue.' : 'Please check the highlighted fields: something is missing or invalid.';
+    }
+    const digits = form.phone.value.replace(/\D/g, '');
+    if (digits.length < 8) { form.phone.focus(); return 'The phone number looks incomplete.'; }
+    return '';
+  }
+
+  function assignDemo() {
+    // Round-robin: same as Apps Script, the next salesperson on the list
+    let i = 0;
+    try { i = +localStorage.getItem('rr') || 0; localStorage.setItem('rr', String(i + 1)); } catch (e) {}
+    return DEMO_SALESPEOPLE[i % DEMO_SALESPEOPLE.length];
+  }
+
+  $('form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const form = ev.target;
+    const err = validate(form);
+    $('error').textContent = err;
+    if (err) return;
+
+    const data = Object.fromEntries(new FormData(form).entries());
+    delete data.consent;
+    $('submit').disabled = true;
+
+    let resp;
+    try {
+      if (APPS_SCRIPT_URL) {
+        // text/plain avoids the CORS preflight that Apps Script doesn't answer
+        const r = await fetch(APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) });
+        resp = await r.json();
+        if (!resp.ok) throw new Error(resp.error || 'Save failed');
+      } else {
+        resp = { ok: true, lead_id: 'DEMO-' + Date.now().toString().slice(-5), salesperson: assignDemo() };
+        try {
+          const saved = JSON.parse(localStorage.getItem('demo_leads') || '[]');
+          saved.push({ ...data, ...resp, date: new Date().toISOString() });
+          localStorage.setItem('demo_leads', JSON.stringify(saved));
+        } catch (e) {}
+      }
+    } catch (e) {
+      $('error').textContent = "We couldn't send your request. Please try again or message us on WhatsApp.";
+      $('submit').disabled = false;
+      return;
+    }
+
+    const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    $('summary').innerHTML = `<dt>Request #</dt><dd>${esc(resp.lead_id)}</dd>
+      <dt>Model</dt><dd>${esc(data.model)}</dd>
+      <dt>Your advisor</dt><dd>${esc(resp.salesperson)}</dd>`;
+    form.hidden = true;
+    $('ok').hidden = false;
+  });
+</script>
+</body>
+</html>
