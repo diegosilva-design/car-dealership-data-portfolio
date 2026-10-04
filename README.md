@@ -2,8 +2,7 @@
 
 **I find where your processes lose time and money, propose a better workflow, implement it with simple tools, and prove the impact with data.**
 
-<!-- TODO: add your name, a one-line bio and your links -->
-👤 **[Your name]** · [LinkedIn](https://www.linkedin.com/in/your-profile) · [Email](mailto:you@example.com)
+👤 **Diego Silva** · [LinkedIn](https://www.linkedin.com/in/your-profile) · [Email](mailto:diegosilvamancilla@gmail.com)
 
 ---
 
