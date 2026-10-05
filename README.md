@@ -40,14 +40,14 @@ Method details and an express-diagnosis questionnaire: [docs/methodology.md](doc
 ## Structure
 
 ```
-├── data/                     synthetic data + the script that generates it
+├── data/                     synthetic leads (2025–2026), 2026 targets + the script that generates them
 ├── docs/methodology.md       how I work
 └── 01-lead-to-sale/
     ├── README.md             executive summary
     ├── 1-diagnosis.md        AS-IS, findings, root cause
     ├── 2-proposal.md         TO-BE, SLAs, KPIs, plan, risks
     ├── 3-implementation/     form + Apps Script
-    ├── 4-measurement/        dashboard
+    ├── 4-measurement/        monthly dashboard (LM / L12M / YoY / target)
     └── 5-impact.md           results and economic value
 ```
 

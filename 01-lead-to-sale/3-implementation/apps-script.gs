@@ -77,7 +77,7 @@ function doPost(e) {
 
     const row = {
       lead_id: id, lead_date: Utilities.formatDate(now, tz, 'yyyy-MM-dd HH:mm'), month: Utilities.formatDate(now, tz, 'yyyy-MM'),
-      period: 'after', channel: d.channel, brand: brand, model: d.model.substring(brand.length + 1) || d.model,
+      period: 'pilot', channel: d.channel, brand: brand, model: d.model.substring(brand.length + 1) || d.model,
       price_usd: PRICES[d.model] || '', city: d.city || '', salesperson: salesperson.name,
       contacted: walkIn ? 'yes' : 'no', hours_to_first_contact: walkIn ? 0.1 : '',
       test_drive: 'no', quote: 'no', sale: 'no', sale_date: '', gross_profit_usd: '',

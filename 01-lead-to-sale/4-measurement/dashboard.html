@@ -15,137 +15,244 @@
     --grid: #e1e0d9;
     --axis: #c3c2b7;
     --border: rgba(11,11,11,0.10);
-    --series-after: #2a78d6;    /* slot 1: the focus (proposed workflow) */
-    --series-before: #a9a79f;   /* gray: the reference (current process) */
-    --good: #006300;
-    --critical: #d03b3b;
+    --accent: #2a78d6;           /* selected month / focus series */
+    --accent-soft: #b7d3f6;      /* other months */
+    --reference: #a9a79f;        /* L12M / last year */
+    --target: #0b0b0b;           /* target line */
+    --f1: #86b6ef; --f2: #5598e7; --f3: #2a78d6; --f4: #1c5cab; --f5: #104281;   /* funnel ramp */
+    --good: #006300; --warning: #9a6700; --critical: #d03b3b;
+    --tip-bg: #0b0b0b; --tip-ink: #ffffff;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
       --page: #0d0d0d; --surface: #1a1a19; --text-primary: #ffffff; --text-secondary: #c3c2b7;
       --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
-      --series-after: #3987e5; --series-before: #6f6e68; --good: #0ca30c; --critical: #e66767;
+      --accent: #3987e5; --accent-soft: #1c5cab; --reference: #6f6e68; --target: #ffffff;
+      --f1: #184f95; --f2: #1c5cab; --f3: #256abf; --f4: #3987e5; --f5: #6da7ec;
+      --good: #0ca30c; --warning: #fab219; --critical: #e66767;
+      --tip-bg: #ffffff; --tip-ink: #0b0b0b;
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
     --page: #0d0d0d; --surface: #1a1a19; --text-primary: #ffffff; --text-secondary: #c3c2b7;
     --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
-    --series-after: #3987e5; --series-before: #6f6e68; --good: #0ca30c; --critical: #e66767;
+    --accent: #3987e5; --accent-soft: #1c5cab; --reference: #6f6e68; --target: #ffffff;
+    --f1: #184f95; --f2: #1c5cab; --f3: #256abf; --f4: #3987e5; --f5: #6da7ec;
+    --good: #0ca30c; --warning: #fab219; --critical: #e66767;
+    --tip-bg: #ffffff; --tip-ink: #0b0b0b;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--page); color: var(--text-primary);
     font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
   }
-  main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
+  main { max-width: 1200px; margin: 0 auto; padding: 32px 16px 64px; }
   header h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
   header p { margin: 0; color: var(--text-secondary); }
   .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
-  .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 24px 0 20px; }
-  .filters label { display: flex; flex-direction: column; font-size: 12px; color: var(--text-secondary); gap: 4px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 24px 0 16px; }
+  .filters label, .card-control { display: flex; flex-direction: column; font-size: 12px; color: var(--text-secondary); gap: 4px; }
   select {
-    font: inherit; padding: 6px 10px; border-radius: 8px; min-width: 180px;
+    font: inherit; padding: 6px 10px; border-radius: 8px; min-width: 170px;
     border: 1px solid var(--border); background: var(--surface); color: var(--text-primary);
   }
-  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary); margin-left: auto; }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .section-title { display: flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin: 8px 0 8px; text-transform: uppercase; letter-spacing: .04em; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; min-width: 0; }
   .kpi .title { font-size: 13px; color: var(--text-secondary); }
-  .kpi .value { font-size: 30px; font-weight: 600; margin: 4px 0 2px; }
-  .kpi .before { font-size: 13px; color: var(--muted); }
-  .kpi .delta { font-size: 13px; font-weight: 600; }
-  .delta.good { color: var(--good); } .delta.bad { color: var(--critical); }
-  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 12px; margin-top: 12px; }
-  @media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } }
-  .card h2 { font-size: 16px; margin: 0 0 2px; }
-  .card .sub { font-size: 13px; color: var(--text-secondary); margin: 0 0 12px; }
+  .kpi .value { font-size: 28px; font-weight: 600; margin: 2px 0 8px; }
+  .kpi dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 12px; }
+  .kpi dt { color: var(--muted); }
+  .kpi dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+  .up-good, .down-good { color: var(--good); font-weight: 600; }
+  .up-bad, .down-bad { color: var(--critical); font-weight: 600; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 12px; margin-top: 12px; }
+  @media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .card h2 { font-size: 16px; margin: 0; display: flex; align-items: center; }
+  .card .sub { font-size: 13px; color: var(--text-secondary); margin: 2px 0 0; }
   .canvas { position: relative; height: 280px; }
-  .insight {
-    margin-top: 12px; font-size: 13px; color: var(--text-secondary);
-    border-left: 3px solid var(--series-after); padding-left: 10px;
+  .insight { margin-top: 12px; font-size: 13px; color: var(--text-secondary); border-left: 3px solid var(--accent); padding-left: 10px; }
+  .insight:empty { display: none; }
+
+  /* ⓘ info tooltips */
+  .info {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    width: 17px; height: 17px; margin-left: 7px; border-radius: 50%; flex: none;
+    border: 1px solid var(--muted); color: var(--text-secondary);
+    font: italic 600 11px/1 Georgia, serif; cursor: help; text-transform: none; letter-spacing: 0;
   }
+  .info:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .info .tip {
+    position: absolute; left: -10px; top: calc(100% + 8px); z-index: 20; width: min(300px, 80vw);
+    background: var(--tip-bg); color: var(--tip-ink); border-radius: 8px; padding: 10px 12px;
+    font: normal 400 12px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; text-align: left;
+    opacity: 0; visibility: hidden; transition: opacity .12s; pointer-events: none; box-shadow: 0 6px 20px rgba(0,0,0,.18);
+  }
+  .info:hover .tip, .info:focus .tip { opacity: 1; visibility: visible; }
+  .tip b { font-weight: 600; }
+
+  /* Funnel */
+  .funnel svg { width: 100%; height: auto; display: block; }
+  .funnel text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .funnel .stage { fill: var(--text-primary); font-size: 14px; font-weight: 600; }
+  .funnel .step { fill: var(--muted); font-size: 12px; }
+  .funnel .val { fill: var(--text-primary); font-size: 15px; font-weight: 600; }
+  .funnel .ref { fill: var(--text-secondary); font-size: 12px; }
+  .funnel polygon:hover { opacity: .85; }
+
   table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
-  th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--grid); }
+  th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
   th:first-child, td:first-child { text-align: left; }
   th { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+  tr.total td { font-weight: 600; border-top: 1px solid var(--axis); }
   .table-wrap { overflow-x: auto; }
-  .alert { color: var(--critical); font-weight: 600; }
+  .status { font-weight: 600; }
+  .status.good { color: var(--good); } .status.warning { color: var(--warning); } .status.critical { color: var(--critical); }
   footer { margin-top: 28px; font-size: 13px; color: var(--muted); }
-  a { color: var(--series-after); }
+  a { color: var(--accent); }
 </style>
 </head>
 <body>
 <main>
   <header>
-    <h1>Lead → Sale: current process vs. proposed workflow</h1>
-    <p>Redwood Auto Group · Jan–Jun 2026 (current process) vs. Jul–Sep 2026 (pilot of the proposed workflow)</p>
+    <h1>Lead → Sale performance</h1>
+    <p>Redwood Auto Group · Monthly report · New lead workflow piloted since Jul 2026</p>
     <p class="note" id="source">Synthetic data generated for this portfolio. The company is fictional.</p>
   </header>
 
   <div class="filters">
+    <label>Month <select id="f-month"></select></label>
     <label>Channel <select id="f-channel"><option value="">All channels</option></select></label>
     <label>Salesperson <select id="f-salesperson"><option value="">Whole team</option></select></label>
-    <div class="legend" aria-hidden="true">
-      <span><i style="background:var(--series-before)"></i>Current process</span>
-      <span><i style="background:var(--series-after)"></i>Proposed workflow (pilot)</span>
-    </div>
   </div>
 
+  <div class="section-title">Key metrics
+    <span class="info" tabindex="0" aria-label="How to read the comparisons">i<span class="tip" role="tooltip">
+      Each card shows the selected month, compared with:<br>
+      <b>LM</b> · last month<br>
+      <b>L12M</b> · monthly average of the 12 months before the selected month<br>
+      <b>YoY</b> · the same month last year<br>
+      <b>Target</b> · the monthly goal (set per channel, so it is hidden when a salesperson is selected)<br>
+      Rates are compared in percentage points (pp); counts and money in %. ▲/▼ show direction; green is better, red is worse.
+    </span></span>
+  </div>
   <section class="kpis" id="kpis"></section>
 
   <section class="grid2">
     <div class="card">
-      <h2>Conversion funnel</h2>
-      <p class="sub">% of leads reaching each stage</p>
-      <div class="canvas"><canvas id="c-funnel" role="img" aria-label="Conversion funnel before and after"></canvas></div>
+      <div class="card-head"><div>
+        <h2>Conversion funnel
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            How many of the month's leads reached each stage of the sale: first contact, test drive, price quote and sale.
+            The width of each band is the share of leads that got that far, and the small text under each stage shows how many moved on from the previous one.
+            On the right, <b>L12M</b> is the same share averaged over the last 12 months. Hover a band for details.
+          </span></span></h2>
+        <p class="sub" id="funnel-sub"></p></div>
+      </div>
+      <div class="funnel" id="funnel"></div>
       <p class="insight" id="i-funnel"></p>
     </div>
+
     <div class="card">
-      <h2>Speed to lead sells cars</h2>
-      <p class="sub">Lead-to-sale conversion by hours to first contact (current process)</p>
+      <div class="card-head"><div>
+        <h2>Leads per month
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            New leads received each month this year (bars), against the <b>monthly target</b> (dark line) and the <b>same month last year</b> (gray line).
+            The selected month is highlighted. Use the channel menu on this card to look at one lead source at a time.
+          </span></span></h2>
+        <p class="sub" id="leads-sub"></p></div>
+        <label class="card-control">Channel <select id="leads-channel"><option value="">All channels</option></select></label>
+      </div>
+      <div class="canvas"><canvas id="c-leads" role="img" aria-label="Leads per month vs target and last year"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>Sales per month
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Cars sold each month from that month's leads (bars), against the <b>monthly sales target</b> (dark line) and the <b>same month last year</b> (gray line).
+            Follows the channel and salesperson filters at the top. Targets are hidden when a salesperson is selected.
+          </span></span></h2>
+        <p class="sub" id="sales-sub"></p></div>
+      </div>
+      <div class="canvas"><canvas id="c-sales" role="img" aria-label="Sales per month vs target and last year"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>Speed to lead
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Of the leads that were contacted, the share that ended in a sale, grouped by how long the first contact took.
+            Uses all months before the pilot (Jan 2025 – Jun 2026) and excludes walk-ins, who are attended on the spot.
+            This is the evidence behind the 1-hour response target.
+          </span></span></h2>
+        <p class="sub">Lead → sale conversion by hours to first contact · Jan 2025 – Jun 2026</p></div>
+      </div>
       <div class="canvas"><canvas id="c-speed" role="img" aria-label="Conversion by time to first contact"></canvas></div>
       <p class="insight" id="i-speed"></p>
     </div>
+
     <div class="card">
-      <h2>Sales per month</h2>
-      <p class="sub">Units sold from leads received that month</p>
-      <div class="canvas"><canvas id="c-month" role="img" aria-label="Sales per month"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Leads contacted by channel</h2>
-      <p class="sub">% of leads that received at least one contact</p>
+      <div class="card-head"><div>
+        <h2>Contact rate by channel
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Share of leads that received at least one reply from the sales team, by the channel the lead came from.
+            The selected month (blue) is compared with the <b>L12M</b> average (gray). Channels are sorted from least to most attended over the last 12 months.
+          </span></span></h2>
+        <p class="sub" id="channel-sub"></p></div>
+      </div>
       <div class="canvas"><canvas id="c-channel" role="img" aria-label="Contact rate by channel"></canvas></div>
       <p class="insight" id="i-channel"></p>
     </div>
+
   </section>
 
   <section class="card" style="margin-top:12px">
-    <h2>Sales team</h2>
-    <p class="sub">With automatic assignment the workload is even and nobody piles up unattended leads</p>
+      <div class="card-head"><div>
+        <h2>Channel scorecard
+          <span class="info" tabindex="0" aria-label="About this table">i<span class="tip" role="tooltip">
+            Leads and sales for the selected month by channel, against each channel's monthly target.
+            <b>✓</b> target met · <b>●</b> within 10% of target · <b>✗</b> more than 10% below target.
+            <b>Conv. vs L12M</b> is the change in conversion rate, in percentage points, against the last-12-month average.
+          </span></span></h2>
+        <p class="sub" id="score-sub"></p></div>
+      </div>
+      <div class="table-wrap"><table id="t-channels"></table></div>
+  </section>
+
+  <section class="card" style="margin-top:12px">
+    <div class="card-head"><div>
+      <h2>Sales team
+        <span class="info" tabindex="0" aria-label="About this table">i<span class="tip" role="tooltip">
+          Each salesperson's results for the selected month. <b>Share of leads</b> shows how evenly leads were distributed (the pilot assigns them in rotation).
+          Contact rates below 70% are flagged with ⚠. Conversion is compared with the salesperson's own L12M average.
+        </span></span></h2>
+      <p class="sub" id="team-sub"></p></div>
+    </div>
     <div class="table-wrap"><table id="t-salespeople"></table></div>
   </section>
 
   <footer>
-    Part of the <a href="../README.md">Lead → Sale</a> case · Process & data analysis portfolio.
+    Part of the <a href="https://github.com/diegosilva-design/car-dealership-data-portfolio/tree/main/01-lead-to-sale">Lead → Sale</a> case · Process & data analysis portfolio.
   </footer>
 </main>
 
-<!-- Data: if DATA_SOURCE_URL holds the Apps Script web app URL (doGet), data is read live; otherwise the sample file is used. -->
+<!-- Data: if DATA_SOURCE_URL holds the Apps Script web app URL (doGet), leads are read live; otherwise the sample file is used. Targets always come from data.js. -->
 <script>const DATA_SOURCE_URL = "";</script>
-<script src="../../data/leads.js"></script>
+<script src="../../data/data.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 (async function () {
   const $ = (id) => document.getElementById(id);
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-  const pct = (x, d = 1) => (x * 100).toFixed(d) + '%';
-  const num = (x, d = 0) => x.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+  const num = (x, d = 0) => (x == null || isNaN(x)) ? '—' : x.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+  const pct = (x, d = 1) => (x == null || isNaN(x)) ? '—' : (x * 100).toFixed(d) + '%';
+  const usdK = (x) => (x == null || isNaN(x)) ? '—' : '$' + num(x / 1000, 0) + 'K';
 
-  // ---------- Load data ----------
+  // ---------- Data ----------
   function parseCSV(txt) {
     const [head, ...rows] = txt.trim().split(/\r?\n/);
     const cols = head.split(',');
@@ -153,165 +260,232 @@
   }
   let leads;
   if (DATA_SOURCE_URL) {
-    try {
-      leads = await (await fetch(DATA_SOURCE_URL)).json();
-      $('source').textContent = 'Live data from Google Sheets.';
-    } catch (e) { console.warn('Could not read the live source, using sample data', e); }
+    try { leads = await (await fetch(DATA_SOURCE_URL)).json(); $('source').textContent = 'Live data from Google Sheets.'; }
+    catch (e) { console.warn('Could not read the live source, using sample data', e); }
   }
   if (!leads) leads = parseCSV(window.LEADS_CSV);
+  const targets = parseCSV(window.TARGETS_CSV).map(t => ({ ...t, leads_target: +t.leads_target, sales_target: +t.sales_target }));
+
+  const monthAdd = (m, k) => { const [y, mo] = m.split('-').map(Number); const d = new Date(y, mo - 1 + k, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+  const monthName = (m, withYear = true) => new Date(m + '-15T12:00').toLocaleDateString('en-US', withYear ? { month: 'short', year: 'numeric' } : { month: 'short' });
 
   const channels = [...new Set(leads.map(l => l.channel))].sort();
   const salespeople = [...new Set(leads.map(l => l.salesperson))].sort();
-  channels.forEach(c => $('f-channel').add(new Option(c, c)));
+  const allMonths = [...new Set(leads.map(l => l.month))].sort();
+  const reportMonths = allMonths.filter(m => allMonths.includes(monthAdd(m, -12)));   // months with a full year of history
+  const year = reportMonths[reportMonths.length - 1].slice(0, 4);
+  const yearMonths = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, '0')}`);
+
+  reportMonths.slice().reverse().forEach(m => $('f-month').add(new Option(monthName(m), m)));
+  channels.forEach(c => { $('f-channel').add(new Option(c, c)); $('leads-channel').add(new Option(c, c)); });
   salespeople.forEach(s => $('f-salesperson').add(new Option(s, s)));
 
   // ---------- Metrics ----------
-  function metrics(rows) {
+  // Counts and money are divided by `months` (monthly average); rates are pooled over all rows.
+  function metrics(rows, months = 1) {
     const n = rows.length;
-    const months = new Set(rows.map(r => r.month)).size || 1;
     const c = rows.filter(r => r.contacted === 'yes');
     const hours = c.filter(r => r.channel !== 'Walk-in').map(r => +r.hours_to_first_contact).sort((a, b) => a - b);
     const sales = rows.filter(r => r.sale === 'yes');
     return {
-      n, months,
-      contact: n ? c.length / n : 0,
-      td: n ? rows.filter(r => r.test_drive === 'yes').length / n : 0,
-      quote: n ? rows.filter(r => r.quote === 'yes').length / n : 0,
-      conv: n ? sales.length / n : 0,
-      salesPerMonth: sales.length / months,
-      uncontactedPerMonth: (n - c.length) / months,
+      leads: n / months,
+      contacted: c.length / months,
+      td: rows.filter(r => r.test_drive === 'yes').length / months,
+      quote: rows.filter(r => r.quote === 'yes').length / months,
+      sales: sales.length / months,
+      gross: sales.reduce((s, r) => s + (+r.gross_profit_usd || 0), 0) / months,
+      contactRate: n ? c.length / n : NaN,
+      conv: n ? sales.length / n : NaN,
       median: hours.length ? hours[Math.floor(hours.length / 2)] : NaN,
-      grossPerMonth: sales.reduce((s, r) => s + (+r.gross_profit_usd || 0), 0) / months,
     };
   }
-  function filtered() {
-    const fc = $('f-channel').value, fs = $('f-salesperson').value;
-    return leads.filter(l => (!fc || l.channel === fc) && (!fs || l.salesperson === fs));
+  const inMonths = (rows, from, to) => rows.filter(r => r.month >= from && r.month <= to);
+  function targetFor(month, channel) {
+    const t = targets.filter(t => t.month === month && (!channel || t.channel === channel));
+    if (!t.length) return null;
+    const leadsT = t.reduce((s, x) => s + x.leads_target, 0), salesT = t.reduce((s, x) => s + x.sales_target, 0);
+    return { leads: leadsT, sales: salesT, conv: leadsT ? salesT / leadsT : NaN };
   }
 
-  // ---------- KPIs ----------
-  function kpi(title, after, before, fmt, higherIsBetter) {
-    const delta = after - before;
-    const good = higherIsBetter ? delta >= 0 : delta <= 0;
-    const arrow = delta >= 0 ? '▲' : '▼';
-    const rel = before ? Math.abs(delta / before) : 0;
-    return `<div class="card kpi"><div class="title">${title}</div>
-      <div class="value">${fmt(after)}</div>
-      <div class="before">Before: ${fmt(before)}</div>
-      <div class="delta ${good ? 'good' : 'bad'}">${arrow} ${pct(rel, 0)} ${good ? 'better' : 'worse'}</div></div>`;
+  // Comparison cell: rates in percentage points, everything else in %
+  function delta(cur, ref, kind, higherIsBetter) {
+    if (ref == null || isNaN(ref) || isNaN(cur) || (kind !== 'pp' && !ref)) return '<span>—</span>';
+    const d = kind === 'pp' ? (cur - ref) * 100 : (cur - ref) / ref * 100;
+    if (Math.abs(d) < 0.05) return '<span>±0' + (kind === 'pp' ? ' pp' : '%') + '</span>';
+    const up = d > 0, good = up === higherIsBetter;
+    return `<span class="${up ? 'up' : 'down'}-${good ? 'good' : 'bad'}">${up ? '▲' : '▼'} ${Math.abs(d).toFixed(1)}${kind === 'pp' ? ' pp' : '%'}</span>`;
   }
 
   // ---------- Charts ----------
   const charts = {};
-  function base(extra = {}) {
+  function draw(id, config) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), config); }
+  function basePlugins() {
     return {
-      responsive: true, maintainAspectRatio: false, animation: false,
-      plugins: { legend: { display: false }, tooltip: { padding: 10, cornerRadius: 8 } },
-      ...extra,
+      legend: { display: true, position: 'top', align: 'end', labels: { color: css('--text-secondary'), usePointStyle: true, boxWidth: 8, boxHeight: 8, font: { size: 12 } } },
+      tooltip: { padding: 10, cornerRadius: 8 },
     };
   }
-  function axes(horizontal, fmtValue) {
-    const value = { grid: { color: css('--grid') }, border: { color: css('--axis') }, ticks: { color: css('--muted'), callback: fmtValue }, beginAtZero: true };
+  function baseOptions(extra = {}) {
+    return { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false }, plugins: basePlugins(), ...extra };
+  }
+  function axes(horizontal, fmtValue, extraValue = {}) {
+    const value = { grid: { color: css('--grid') }, border: { color: css('--axis') }, ticks: { color: css('--muted'), callback: fmtValue }, beginAtZero: true, ...extraValue };
     const cat = { grid: { display: false }, border: { color: css('--axis') }, ticks: { color: css('--text-secondary') } };
     return horizontal ? { x: value, y: cat } : { x: cat, y: value };
   }
-  function draw(id, config) {
-    if (charts[id]) charts[id].destroy();
-    charts[id] = new Chart($(id), config);
+  const bar = { borderRadius: 4, borderSkipped: 'start', maxBarThickness: 26, categoryPercentage: 0.75, barPercentage: 0.9 };
+  const line = (color, pointStyle) => ({ type: 'line', borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, pointStyle, tension: 0, spanGaps: true });
+
+  function monthlyChart(id, rows, key, channelForTarget, showTarget, label) {
+    const sel = $('f-month').value;
+    const count = (m) => rows.filter(r => r.month === m && (key === 'leads' || r.sale === 'yes')).length;
+    const actual = yearMonths.map(m => allMonths.includes(m) ? count(m) : null);
+    const ly = yearMonths.map(m => count(monthAdd(m, -12)));
+    const tgt = yearMonths.map(m => { const t = targetFor(m, channelForTarget); return t ? +t[key].toFixed(1) : null; });
+    const datasets = [
+      { label: `${label} ${year}`, data: actual, backgroundColor: yearMonths.map(m => m === sel ? css('--accent') : css('--accent-soft')), order: 3, ...bar, pointStyle: 'rect' },
+      { label: 'Same month last year', data: ly, ...line(css('--reference'), 'circle'), order: 2 },
+    ];
+    if (showTarget) datasets.push({ label: 'Target', data: tgt, ...line(css('--target'), 'triangle'), order: 1 });
+    draw(id, { type: 'bar', data: { labels: yearMonths.map(m => monthName(m, false)), datasets },
+      options: baseOptions({ scales: axes(false, v => num(v)), plugins: { ...basePlugins(), legend: { ...basePlugins().legend, reverse: true } } }) });
   }
-  const bar = { borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22, categoryPercentage: 0.7, barPercentage: 0.9 };
 
+  // ---------- Funnel (SVG) ----------
+  function drawFunnel(cur, ref) {
+    const stages = [
+      ['Leads', cur.leads, ref.leads], ['Contacted', cur.contacted, ref.contacted], ['Test drive', cur.td, ref.td],
+      ['Quote', cur.quote, ref.quote], ['Sale', cur.sales, ref.sales],
+    ];
+    const W = 600, rowH = 58, top = 4, cx = 300, maxW = 300, minW = 26, gap = 3;
+    const widthOf = v => cur.leads ? Math.max(minW, maxW * v / cur.leads) : minW;
+    let svg = `<svg viewBox="0 0 ${W} ${top + rowH * stages.length}" role="img" aria-label="Conversion funnel">`;
+    stages.forEach(([name, v, r], i) => {
+      const y = top + i * rowH, w1 = widthOf(v), w2 = i < stages.length - 1 ? widthOf(stages[i + 1][1]) : w1 * 0.8;
+      const share = cur.leads ? v / cur.leads : NaN, refShare = ref.leads ? r / ref.leads : NaN;
+      const step = i > 0 && stages[i - 1][1] ? v / stages[i - 1][1] : null;
+      svg += `<polygon points="${cx - w1 / 2},${y} ${cx + w1 / 2},${y} ${cx + w2 / 2},${y + rowH - gap} ${cx - w2 / 2},${y + rowH - gap}" style="fill:var(--f${i + 1})">` +
+        `<title>${name}: ${num(v)} (${pct(share)} of leads)${step != null ? ` · ${pct(step, 0)} of previous stage` : ''} · L12M: ${pct(refShare)}</title></polygon>`;
+      svg += `<text class="stage" x="4" y="${y + 24}">${name}</text>`;
+      if (step != null) svg += `<text class="step" x="4" y="${y + 42}">${pct(step, 0)} of previous</text>`;
+      svg += `<text class="val" x="${W - 4}" y="${y + 24}" text-anchor="end">${num(v)} · ${pct(share, 0)}</text>`;
+      svg += `<text class="ref" x="${W - 4}" y="${y + 42}" text-anchor="end">L12M ${pct(refShare, 0)}</text>`;
+    });
+    $('funnel').innerHTML = svg + '</svg>';
+  }
+
+  // ---------- Render ----------
   function render() {
-    const rows = filtered();
-    const B = rows.filter(r => r.period === 'before');
-    const A = rows.filter(r => r.period === 'after');
-    const mb = metrics(B), ma = metrics(A);
-    const cB = css('--series-before'), cA = css('--series-after');
+    const sel = $('f-month').value, fc = $('f-channel').value, fs = $('f-salesperson').value;
+    const lm = monthAdd(sel, -1), ly = monthAdd(sel, -12), l12From = monthAdd(sel, -12), l12To = monthAdd(sel, -1);
+    const rows = leads.filter(l => (!fc || l.channel === fc) && (!fs || l.salesperson === fs));
+    const cur = metrics(rows.filter(r => r.month === sel));
+    const mLM = metrics(rows.filter(r => r.month === lm));
+    const mLY = metrics(rows.filter(r => r.month === ly));
+    const m12 = metrics(inMonths(rows, l12From, l12To), 12);
+    const tgt = fs ? null : targetFor(sel, fc);
+    const selName = monthName(sel), l12Name = `${monthName(l12From)} – ${monthName(l12To)}`;
 
+    // KPI cards
+    const card = (title, key, fmt, kind, higher, tKey) => {
+      const v = cur[key];
+      return `<div class="card kpi"><div class="title">${title}</div><div class="value">${fmt(v)}</div><dl>
+        <dt>vs LM</dt><dd>${delta(v, mLM[key], kind, higher)}</dd>
+        <dt>vs L12M</dt><dd>${delta(v, m12[key], kind, higher)}</dd>
+        <dt>YoY</dt><dd>${delta(v, mLY[key], kind, higher)}</dd>
+        ${tKey ? `<dt>vs Target</dt><dd>${tgt ? delta(v, tgt[tKey], kind, higher) + ` <span style="color:var(--muted)">(${fmt(tgt[tKey])})</span>` : '—'}</dd>` : ''}
+      </dl></div>`;
+    };
     $('kpis').innerHTML =
-      kpi('Lead → sale conversion', ma.conv, mb.conv, x => pct(x), true) +
-      kpi('Leads contacted', ma.contact, mb.contact, x => pct(x, 0), true) +
-      kpi('Median time to first contact', ma.median, mb.median, x => isNaN(x) ? '—' : num(x, 1) + ' h', false) +
-      kpi('Sales per month', ma.salesPerMonth, mb.salesPerMonth, x => num(x, 1), true) +
-      kpi('Gross profit per month', ma.grossPerMonth, mb.grossPerMonth, x => '$' + num(x / 1000, 0) + 'K', true) +
-      kpi('Uncontacted leads per month', ma.uncontactedPerMonth, mb.uncontactedPerMonth, x => num(x, 0), false);
+      card('Leads', 'leads', x => num(x), '%', true, 'leads') +
+      card('Contact rate', 'contactRate', x => pct(x), 'pp', true) +
+      card('Median time to first contact', 'median', x => isNaN(x) ? '—' : num(x, 1) + ' h', '%', false) +
+      card('Lead → sale conversion', 'conv', x => pct(x), 'pp', true, 'conv') +
+      card('Cars sold', 'sales', x => num(x, x % 1 ? 1 : 0), '%', true, 'sales') +
+      card('Gross profit', 'gross', usdK, '%', true);
 
     // Funnel
-    const stages = ['Lead', 'Contacted', 'Test drive', 'Quote', 'Sale'];
-    const vb = [1, mb.contact, mb.td, mb.quote, mb.conv], va = [1, ma.contact, ma.td, ma.quote, ma.conv];
-    draw('c-funnel', {
-      type: 'bar',
-      data: { labels: stages, datasets: [
-        { label: 'Current process', data: vb, backgroundColor: cB, ...bar },
-        { label: 'Proposed workflow', data: va, backgroundColor: cA, ...bar },
-      ] },
-      options: base({ indexAxis: 'y', scales: axes(true, v => Math.round(v * 100) + '%'),
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${pct(c.raw)}` } } } }),
-    });
-    $('i-funnel').textContent = mb.n && ma.n
-      ? `The biggest loss happens before the first contact: ${pct(1 - mb.contact, 0)} of leads never got a reply in the current process.`
+    $('funnel-sub').textContent = `${selName} vs. L12M average (${l12Name})`;
+    drawFunnel(cur, m12);
+    $('i-funnel').textContent = cur.leads && m12.leads
+      ? `In ${selName}, ${pct(cur.contactRate, 0)} of leads were contacted, against ${pct(m12.contactRate, 0)} on average over the last 12 months. The biggest drop is before the first contact.`
       : '';
 
-    // Speed (current process only, excluding walk-ins)
+    // Monthly charts
+    const lc = $('leads-channel').value;
+    $('leads-sub').textContent = `${lc || 'All channels'} · ${year} actual vs. target and last year`;
+    $('sales-sub').textContent = `${fc || 'All channels'}${fs ? ' · ' + fs : ''} · ${year} actual vs. ${fs ? '' : 'target and '}last year`;
+    monthlyChart('c-leads', leads.filter(l => (!lc || l.channel === lc) && (!fs || l.salesperson === fs)), 'leads', lc, !fs, 'Leads');
+    monthlyChart('c-sales', rows, 'sales', fc, !fs, 'Sales');
+
+    // Speed to lead (pre-pilot)
     const bands = [['< 1 h', h => h < 1], ['1 – 24 h', h => h >= 1 && h <= 24], ['> 24 h', h => h > 24]];
-    const cont = B.filter(r => r.contacted === 'yes' && r.channel !== 'Walk-in');
+    const cont = rows.filter(r => r.period === 'pre-pilot' && r.contacted === 'yes' && r.channel !== 'Walk-in');
     const speed = bands.map(([, f]) => { const g = cont.filter(r => f(+r.hours_to_first_contact)); return { n: g.length, conv: g.length ? g.filter(r => r.sale === 'yes').length / g.length : 0 }; });
     draw('c-speed', {
       type: 'bar',
-      data: { labels: bands.map(b => b[0]), datasets: [{ label: 'Conversion', data: speed.map(s => s.conv), backgroundColor: cA, ...bar, maxBarThickness: 56 }] },
-      options: base({ scales: axes(false, v => (v * 100).toFixed(0) + '%'),
+      data: { labels: bands.map(b => b[0]), datasets: [{ label: 'Conversion', data: speed.map(s => s.conv), backgroundColor: css('--accent'), ...bar, maxBarThickness: 64 }] },
+      options: baseOptions({ scales: axes(false, v => (v * 100).toFixed(0) + '%'),
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `Conversion: ${pct(c.raw)} (${num(speed[c.dataIndex].n)} leads)` } } } }),
     });
     const late = speed[2].n / (cont.length || 1);
     $('i-speed').textContent = speed[0].conv && speed[2].conv
-      ? `A lead contacted within 1 hour converts ${num(speed[0].conv / speed[2].conv, 1)}× more than one contacted after 24 h — and today ${pct(late, 0)} of contacts arrive late.`
+      ? `A lead contacted within 1 hour converts ${num(speed[0].conv / speed[2].conv, 1)}× more than one contacted after 24 hours. Before the pilot, ${pct(late, 0)} of contacts came after 24 hours.`
       : '';
 
-    // Sales per month
-    const months = [...new Set(leads.map(l => l.month))].sort();
-    const monthName = m => new Date(m + '-15').toLocaleDateString('en-US', { month: 'short' });
-    const perMonth = months.map(m => rows.filter(r => r.month === m && r.sale === 'yes').length);
-    const monthPeriod = months.map(m => (leads.find(l => l.month === m) || {}).period);
-    draw('c-month', {
-      type: 'bar',
-      data: { labels: months.map(monthName), datasets: [{ label: 'Sales', data: perMonth, backgroundColor: monthPeriod.map(p => p === 'after' ? cA : cB), ...bar, maxBarThickness: 36, categoryPercentage: 0.8 }] },
-      options: base({ scales: axes(false, v => v),
-        plugins: { legend: { display: false }, tooltip: { callbacks: {
-          title: c => months[c[0].dataIndex] + (monthPeriod[c[0].dataIndex] === 'after' ? ' · proposed workflow' : ' · current process'),
-          label: c => `${c.raw} sales` } } } }),
-    });
-
     // Contact rate by channel
-    const visibleChannels = $('f-channel').value ? [$('f-channel').value] : channels;
-    const contactRate = (g, ch) => { const x = g.filter(r => r.channel === ch); return x.length ? x.filter(r => r.contacted === 'yes').length / x.length : 0; };
-    const order = [...visibleChannels].sort((a, b) => contactRate(B, a) - contactRate(B, b));
+    $('channel-sub').textContent = `${selName} vs. L12M average (${l12Name})`;
+    const visible = fc ? [fc] : channels;
+    const rate = (from, to, ch) => { const x = inMonths(rows, from, to).filter(r => r.channel === ch); return x.length ? x.filter(r => r.contacted === 'yes').length / x.length : NaN; };
+    const order = [...visible].sort((a, b) => rate(l12From, l12To, a) - rate(l12From, l12To, b));
     draw('c-channel', {
       type: 'bar',
       data: { labels: order, datasets: [
-        { label: 'Current process', data: order.map(c => contactRate(B, c)), backgroundColor: cB, ...bar },
-        { label: 'Proposed workflow', data: order.map(c => contactRate(A, c)), backgroundColor: cA, ...bar },
+        { label: 'L12M average', data: order.map(c => rate(l12From, l12To, c)), backgroundColor: css('--reference'), ...bar, pointStyle: 'rect' },
+        { label: selName, data: order.map(c => rate(sel, sel, c)), backgroundColor: css('--accent'), ...bar, pointStyle: 'rect' },
       ] },
-      options: base({ indexAxis: 'y', scales: { ...axes(true, v => Math.round(v * 100) + '%'), x: { ...axes(true).x, max: 1, ticks: { color: css('--muted'), callback: v => Math.round(v * 100) + '%' } } },
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${pct(c.raw, 0)}` } } } }),
+      options: baseOptions({ indexAxis: 'y', interaction: { mode: 'index', intersect: false, axis: 'y' },
+        scales: axes(true, v => Math.round(v * 100) + '%', { max: 1 }),
+        plugins: { ...basePlugins(), tooltip: { callbacks: { label: c => `${c.dataset.label}: ${pct(c.raw, 0)}` } } } }),
     });
     $('i-channel').textContent = order.length > 1
-      ? `The most neglected channels were ${order.slice(0, 2).join(' and ')}: nobody owned checking them.`
+      ? `${order[0]} and ${order[1]} were the least attended channels over the last 12 months. In ${selName} they reached ${pct(rate(sel, sel, order[0]), 0)} and ${pct(rate(sel, sel, order[1]), 0)}.`
       : '';
 
-    // Salespeople table
-    const spRows = (($('f-salesperson').value) ? [$('f-salesperson').value] : salespeople).map(s => {
-      const b = metrics(B.filter(r => r.salesperson === s)), a = metrics(A.filter(r => r.salesperson === s));
-      return { s, b, a, shareB: b.n / (B.length || 1), shareA: a.n / (A.length || 1) };
-    }).sort((x, y) => y.b.n - x.b.n);
-    $('t-salespeople').innerHTML = `<thead><tr><th>Salesperson</th><th>Share of leads (before)</th><th>Share of leads (pilot)</th>
-      <th>Contacted (before)</th><th>Contacted (pilot)</th><th>Conversion (before)</th><th>Conversion (pilot)</th></tr></thead><tbody>` +
-      spRows.map(r => `<tr><td>${r.s}</td><td>${pct(r.shareB, 0)}</td><td>${pct(r.shareA, 0)}</td>
-        <td class="${r.b.contact < 0.7 ? 'alert' : ''}">${pct(r.b.contact, 0)}${r.b.contact < 0.7 ? ' ⚠' : ''}</td>
-        <td>${pct(r.a.contact, 0)}</td><td>${pct(r.b.conv)}</td><td>${pct(r.a.conv)}</td></tr>`).join('') + '</tbody>';
+    // Channel scorecard
+    $('score-sub').textContent = fs ? `${selName} · targets are set per channel, so they are hidden while a salesperson is selected` : `${selName} vs. monthly target`;
+    const status = (actual, target) => {
+      if (!target) return '—';
+      const r = actual / target;
+      const [cls, icon] = r >= 1 ? ['good', '✓'] : r >= 0.9 ? ['warning', '●'] : ['critical', '✗'];
+      return `<span class="status ${cls}">${icon} ${pct(r, 0)}</span>`;
+    };
+    const scoreRow = (label, ch, cls = '') => {
+      const sub = ch ? rows.filter(r => r.channel === ch) : rows;
+      const m = metrics(sub.filter(r => r.month === sel)), r12 = metrics(inMonths(sub, l12From, l12To), 12), mly = metrics(sub.filter(r => r.month === ly));
+      const t = fs ? null : targetFor(sel, ch);
+      return `<tr class="${cls}"><td>${label}</td><td>${num(m.leads)}</td><td>${t ? num(t.leads) : '—'}</td><td>${t ? status(m.leads, t.leads) : '—'}</td>
+        <td>${num(m.sales)}</td><td>${t ? num(t.sales, 1) : '—'}</td><td>${t ? status(m.sales, t.sales) : '—'}</td>
+        <td>${pct(m.conv)}</td><td>${delta(m.conv, r12.conv, 'pp', true)}</td><td>${delta(m.sales, mly.sales, '%', true)}</td></tr>`;
+    };
+    $('t-channels').innerHTML = `<thead><tr><th>Channel</th><th>Leads</th><th>Target</th><th>vs target</th><th>Sales</th><th>Target</th><th>vs target</th><th>Conv.</th><th>Conv. vs L12M</th><th>Sales YoY</th></tr></thead><tbody>` +
+      visible.map(c => scoreRow(c, c)).join('') + (fc ? '' : scoreRow('Total', '', 'total')) + '</tbody>';
+
+    // Sales team
+    $('team-sub').textContent = `${selName} · conversion compared with each salesperson's L12M average`;
+    const monthRows = rows.filter(r => r.month === sel);
+    const team = (fs ? [fs] : salespeople).map(s => {
+      const sub = rows.filter(r => r.salesperson === s);
+      return { s, m: metrics(sub.filter(r => r.month === sel)), r12: metrics(inMonths(sub, l12From, l12To), 12) };
+    }).sort((a, b) => b.m.leads - a.m.leads);
+    $('t-salespeople').innerHTML = `<thead><tr><th>Salesperson</th><th>Leads</th><th>Share of leads</th><th>Contact rate</th><th>Median response</th><th>Sales</th><th>Conversion</th><th>L12M conversion</th><th>Change</th></tr></thead><tbody>` +
+      team.map(t => `<tr><td>${t.s}</td><td>${num(t.m.leads)}</td><td>${pct(t.m.leads / (monthRows.length || 1), 0)}</td>
+        <td class="${t.m.contactRate < 0.7 ? 'status critical' : ''}">${pct(t.m.contactRate, 0)}${t.m.contactRate < 0.7 ? ' ⚠' : ''}</td>
+        <td>${isNaN(t.m.median) ? '—' : num(t.m.median, 1) + ' h'}</td><td>${num(t.m.sales)}</td><td>${pct(t.m.conv)}</td><td>${pct(t.r12.conv)}</td>
+        <td>${delta(t.m.conv, t.r12.conv, 'pp', true)}</td></tr>`).join('') + '</tbody>';
   }
 
-  $('f-channel').addEventListener('change', render);
-  $('f-salesperson').addEventListener('change', render);
+  ['f-month', 'f-channel', 'f-salesperson', 'leads-channel'].forEach(id => $(id).addEventListener('change', render));
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
   render();
 })();
