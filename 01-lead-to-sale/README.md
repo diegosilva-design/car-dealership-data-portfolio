@@ -17,7 +17,7 @@
 
 **Pilot result (3 months):**
 
-| KPI | Before | Pilot |
+| KPI | Baseline (Jan–Jun 2026) | Pilot (Jul–Sep 2026) |
 |---|---|---|
 | Leads contacted | 75.6% | **90.2%** |
 | Median time to first contact | 17.7 h | **~1 h** |

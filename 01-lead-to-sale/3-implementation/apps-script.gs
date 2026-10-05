@@ -4,7 +4,7 @@
  * Does 4 things, with no servers or licenses:
  *  1. doPost     → receives the form, saves the lead and ASSIGNS it (round-robin) to an active salesperson.
  *  2. notify     → emails the salesperson as soon as the lead comes in.
- *  3. checkSLA   → every 15 min: lead not contacted > 1 h → reminder to the salesperson; > 4 h → alert to the sales manager.
+ *  3. checkSLA   → every 15 min: lead not contacted > 1 business hour → reminder to the salesperson; > 4 → alert to the sales manager.
  *  4. onEdit     → when the salesperson changes the "status", records the contact time and moves the funnel forward.
  *  +  doGet      → serves the data WITHOUT personal information to feed the dashboard.
  *
@@ -17,6 +17,7 @@ const CONFIG = {
   SALES_MANAGER_EMAIL: 'sales.manager@example.com',
   SLA_REMINDER_HOURS: 1,
   SLA_ESCALATION_HOURS: 4,
+  BUSINESS_HOURS: { open: 9, close: 20, days: [1, 2, 3, 4, 5, 6] },   // SLA clock runs Mon–Sat, 9 am – 8 pm (script time zone)
   ESTIMATED_GROSS: 0.095,                  // average gross profit (vehicle + F&I) as a share of price, for the dashboard
 };
 
@@ -64,6 +65,7 @@ function doPost(e) {
   lock.waitLock(10000);   // prevents two simultaneous leads from getting the same salesperson
   try {
     const d = JSON.parse(e.postData.contents);
+    if (d.website) return json({ ok: true, lead_id: '', salesperson: '' });   // honeypot: only bots fill the hidden field
     const missing = ['name', 'phone', 'email', 'model', 'channel'].filter(k => !d[k]);
     if (missing.length) return json({ ok: false, error: 'Missing fields: ' + missing.join(', ') });
 
@@ -118,6 +120,23 @@ function notify(salesperson, r) {
   });
 }
 
+/** Hours between two dates that fall inside CONFIG.BUSINESS_HOURS (so a lead sent at 9 pm is not overdue at 1 am). */
+function businessHoursBetween(from, to) {
+  const { open, close, days } = CONFIG.BUSINESS_HOURS;
+  let total = 0;
+  const day = new Date(from); day.setHours(0, 0, 0, 0);
+  while (day < to) {
+    if (days.includes(day.getDay())) {
+      const start = new Date(day); start.setHours(open, 0, 0, 0);
+      const end = new Date(day); end.setHours(close, 0, 0, 0);
+      const s = Math.max(start, from), en = Math.min(end, to);
+      if (en > s) total += (en - s) / 36e5;
+    }
+    day.setDate(day.getDate() + 1);
+  }
+  return total;
+}
+
 /** 3. Runs every 15 min: reminder and escalation for unattended leads. */
 function checkSLA() {
   const sheet = SpreadsheetApp.getActive().getSheetByName(CONFIG.LEADS_SHEET);
@@ -131,7 +150,7 @@ function checkSLA() {
   for (let i = 1; i < data.length; i++) {
     const r = data[i];
     if (r[col('status')] !== 'New') continue;
-    const hours = (now - new Date(String(r[col('lead_date')]).replace(' ', 'T'))) / 36e5;
+    const hours = businessHoursBetween(new Date(String(r[col('lead_date')]).replace(' ', 'T')), now);
     const alert = Number(r[col('alert')] || 0);
     if (hours >= CONFIG.SLA_ESCALATION_HOURS && alert < 2) {
       escalated.push(`${r[col('lead_id')]} · ${r[col('salesperson')]} · ${hours.toFixed(1)} h without contact · ${r[col('channel')]}`);

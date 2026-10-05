@@ -45,6 +45,7 @@ $weightBefore = @{ 'Emily Johnson' = 24; 'Michael Carter' = 22; 'Sarah Mitchell'
 $followUp     = @{ 'Emily Johnson' = 1.05; 'Michael Carter' = 0.85; 'Sarah Mitchell' = 1.08; 'David Nguyen' = 0.95; 'Jessica Ramirez' = 1.1; 'Chris Walker' = 0.9 }
 
 
+$lastDataDay = Get-Date -Year 2026 -Month 10 -Day 3   # data cut-off (the day before the report date)
 $leadsPerMonth2026 = @{ 1 = 512; 2 = 468; 3 = 534; 4 = 497; 5 = 521; 6 = 489; 7 = 506; 8 = 528; 9 = 515 }
 $leadsPerMonth2025 = @{ 1 = 455; 2 = 430; 3 = 498; 4 = 471; 5 = 489; 6 = 462; 7 = 475; 8 = 503; 9 = 466; 10 = 452; 11 = 438; 12 = 512 }
 
@@ -57,7 +58,7 @@ function New-Leads($year, $leadsPerMonth) {
         $period = if ($pilot) { 'pilot' } else { 'pre-pilot' }
         $daysInMonth = [DateTime]::DaysInMonth($year, $month)
         for ($i = 0; $i -lt $leadsPerMonth[$month]; $i++) {
-            $date = (Get-Date -Year $year -Month $month -Day ($rnd.Next(1, $daysInMonth + 1)) -Hour ($rnd.Next(8, 22)) -Minute ($rnd.Next(0, 60)) -Second 0)
+            $date = (Get-Date -Year $year -Month $month -Day ($rnd.Next(1, $daysInMonth + 1)) -Hour ($rnd.Next(8, 22)) -Minute ($rnd.Next(0, 60)) -Second 0 -Millisecond 0)
             $channel = Pick $channels
             $m = Pick $models
             $city = Pick $cities
@@ -101,7 +102,9 @@ function New-Leads($year, $leadsPerMonth) {
 
             $saleDate = ''; $gross = ''
             if ($sale) {
-                $saleDate = $date.AddDays($rnd.Next(3, 25)).ToString('yyyy-MM-dd')
+                $closed = $date.AddDays($rnd.Next(3, 25))
+                if ($closed -gt $lastDataDay) { $closed = $lastDataDay }   # no sale can be dated after the data cut-off
+                $saleDate = $closed.ToString('yyyy-MM-dd')
                 $gross = [string][Math]::Round($m[2] * (0.08 + $rnd.NextDouble() * 0.03))
             }
             $yn = { param($b) if ($b) { 'yes' } else { 'no' } }
@@ -123,7 +126,8 @@ New-Leads 2025 $leadsPerMonth2025
 $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine('lead_id,lead_date,month,period,channel,brand,model,price_usd,city,salesperson,contacted,hours_to_first_contact,test_drive,quote,sale,sale_date,gross_profit_usd')
 $id = 0
-foreach ($r in ($rows | Sort-Object Date, Seq)) { $id++; [void]$sb.AppendLine(('L{0:00000},' -f $id) + $r.Fields) }
+# One unique sort key (timestamp + creation order), so the output is identical on every run
+foreach ($r in ($rows | Sort-Object { '{0:D19}-{1:D6}' -f $_.Date.Ticks, $_.Seq })) { $id++; [void]$sb.AppendLine(('L{0:00000},' -f $id) + $r.Fields) }
 
 # Monthly targets per channel for 2026, set from 2025 actuals:
 #   leads target = same month last year +5%
