@@ -53,7 +53,37 @@
   header p { margin: 0; color: var(--text-secondary); }
   .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
   .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 24px 0 16px; }
-  .filters label, .card-control { display: flex; flex-direction: column; font-size: 12px; color: var(--text-secondary); gap: 4px; }
+  .filters > label, .field, .card-control { display: flex; flex-direction: column; font-size: 12px; color: var(--text-secondary); gap: 4px; }
+
+  /* Multi-select channel menu */
+  .ms { position: relative; }
+  .ms-btn {
+    font: inherit; font-size: 15px; padding: 6px 30px 6px 10px; border-radius: 8px; min-width: 170px; text-align: left; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); position: relative; white-space: nowrap;
+  }
+  .ms-btn::after { content: "▾"; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 12px; }
+  .ms-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ms-panel {
+    position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; min-width: 230px; padding: 6px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.14);
+  }
+  .ms-panel.flip { left: auto; right: 0; }
+  .ms-panel[hidden] { display: none; }
+  .ms-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: 6px; }
+  .ms-row:hover { background: var(--page); }
+  .ms-row label { display: flex; flex-direction: row; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-primary); }
+  .ms-row input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+  .ms-only { font: 12px system-ui, sans-serif; color: var(--accent); background: none; border: 0; cursor: pointer; padding: 2px 4px; opacity: 0; }
+  .ms-row:hover .ms-only, .ms-only:focus-visible { opacity: 1; }
+  .ms-actions { display: flex; justify-content: space-between; border-top: 1px solid var(--grid); margin-top: 4px; padding: 6px 8px 2px; }
+  .ms-actions button { font: 12px system-ui, sans-serif; color: var(--accent); background: none; border: 0; cursor: pointer; padding: 2px 0; }
+
+  /* Sortable table headers */
+  th button.sort { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+  th button.sort:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  th .arrow { font-size: 10px; color: var(--muted); width: 10px; display: inline-block; text-align: center; }
+  th[aria-sort="ascending"] .arrow, th[aria-sort="descending"] .arrow { color: var(--accent); }
+  th[aria-sort="ascending"], th[aria-sort="descending"] { color: var(--text-primary); }
   select {
     font: inherit; padding: 6px 10px; border-radius: 8px; min-width: 170px;
     border: 1px solid var(--border); background: var(--surface); color: var(--text-primary);
@@ -125,7 +155,7 @@
 
   <div class="filters">
     <label>Month <select id="f-month"></select></label>
-    <label>Channel <select id="f-channel"><option value="">All channels</option></select></label>
+    <div class="field"><span>Channels</span><div class="ms" data-picker="global"></div></div>
     <label>Salesperson <select id="f-salesperson"><option value="">Whole team</option></select></label>
   </div>
 
@@ -151,6 +181,7 @@
             On the right, <b>L12M</b> is the same share averaged over the last 12 months. Hover a band for details.
           </span></span></h2>
         <p class="sub" id="funnel-sub"></p></div>
+        <div class="card-control"><span>Channels</span><div class="ms" data-picker="global"></div></div>
       </div>
       <div class="funnel" id="funnel"></div>
       <p class="insight" id="i-funnel"></p>
@@ -161,10 +192,10 @@
         <h2>Leads per month
           <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
             New leads received each month this year (bars), against the <b>monthly target</b> (dark line) and the <b>same month last year</b> (gray line).
-            The selected month is highlighted. Use the channel menu on this card to look at one lead source at a time.
+            The selected month is highlighted. This chart has its own channel menu: tick one or several lead sources, or hover a channel and click <b>only</b>. It resets when the main channel filter changes.
           </span></span></h2>
         <p class="sub" id="leads-sub"></p></div>
-        <label class="card-control">Channel <select id="leads-channel"><option value="">All channels</option></select></label>
+        <div class="card-control"><span>Channels (this chart)</span><div class="ms" data-picker="leads"></div></div>
       </div>
       <div class="canvas"><canvas id="c-leads" role="img" aria-label="Leads per month vs target and last year"></canvas></div>
     </div>
@@ -177,6 +208,7 @@
             Follows the channel and salesperson filters at the top. Targets are hidden when a salesperson is selected.
           </span></span></h2>
         <p class="sub" id="sales-sub"></p></div>
+        <div class="card-control"><span>Channels</span><div class="ms" data-picker="global"></div></div>
       </div>
       <div class="canvas"><canvas id="c-sales" role="img" aria-label="Sales per month vs target and last year"></canvas></div>
     </div>
@@ -203,6 +235,7 @@
             The selected month (blue) is compared with the <b>L12M</b> average (gray). Channels are sorted from least to most attended over the last 12 months.
           </span></span></h2>
         <p class="sub" id="channel-sub"></p></div>
+        <div class="card-control"><span>Channels</span><div class="ms" data-picker="global"></div></div>
       </div>
       <div class="canvas"><canvas id="c-channel" role="img" aria-label="Contact rate by channel"></canvas></div>
       <p class="insight" id="i-channel"></p>
@@ -216,9 +249,10 @@
           <span class="info" tabindex="0" aria-label="About this table">i<span class="tip" role="tooltip">
             Leads and sales for the selected month by channel, against each channel's monthly target.
             <b>✓</b> target met · <b>●</b> within 10% of target · <b>✗</b> more than 10% below target.
-            <b>Conv. vs L12M</b> is the change in conversion rate, in percentage points, against the last-12-month average.
+            <b>Conv. vs L12M</b> is the change in conversion rate, in percentage points, against the last-12-month average. Click any column title to sort; click again to reverse the order.
           </span></span></h2>
         <p class="sub" id="score-sub"></p></div>
+        <div class="card-control"><span>Channels</span><div class="ms" data-picker="global"></div></div>
       </div>
       <div class="table-wrap"><table id="t-channels"></table></div>
   </section>
@@ -228,7 +262,7 @@
       <h2>Sales team
         <span class="info" tabindex="0" aria-label="About this table">i<span class="tip" role="tooltip">
           Each salesperson's results for the selected month. <b>Share of leads</b> shows how evenly leads were distributed (the pilot assigns them in rotation).
-          Contact rates below 70% are flagged with ⚠. Conversion is compared with the salesperson's own L12M average.
+          Contact rates below 70% are flagged with ⚠. Conversion is compared with the salesperson's own L12M average. Click any column title to sort.
         </span></span></h2>
       <p class="sub" id="team-sub"></p></div>
     </div>
@@ -277,8 +311,73 @@
   const yearMonths = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, '0')}`);
 
   reportMonths.slice().reverse().forEach(m => $('f-month').add(new Option(monthName(m), m)));
-  channels.forEach(c => { $('f-channel').add(new Option(c, c)); $('leads-channel').add(new Option(c, c)); });
   salespeople.forEach(s => $('f-salesperson').add(new Option(s, s)));
+
+  // ---------- Channel selection ----------
+  // `global` drives every chart and table; `leads` belongs to the Leads per month chart and resets when `global` changes.
+  const selection = { global: new Set(channels), leads: new Set(channels) };
+  const channelLabel = (set) => set.size === channels.length ? 'All channels' : set.size === 1 ? [...set][0] : `${set.size} channels`;
+  const pickers = [];
+
+  function makePicker(el, key) {
+    el.innerHTML = `<button type="button" class="ms-btn" aria-haspopup="true" aria-expanded="false"></button>
+      <div class="ms-panel" role="group" aria-label="Choose channels" hidden>
+        ${channels.map(c => `<div class="ms-row"><label><input type="checkbox" value="${c}"> ${c}</label><button type="button" class="ms-only" data-only="${c}">only</button></div>`).join('')}
+        <div class="ms-actions"><button type="button" data-all>Select all</button><button type="button" data-close>Done</button></div>
+      </div>`;
+    const btn = el.querySelector('.ms-btn'), panel = el.querySelector('.ms-panel');
+    const open = (on) => {
+      panel.hidden = !on; btn.setAttribute('aria-expanded', on);
+      if (on) { panel.classList.remove('flip'); if (panel.getBoundingClientRect().right > document.documentElement.clientWidth - 8) panel.classList.add('flip'); }
+    };
+    const apply = (set) => {
+      if (!set.size) return refresh();           // at least one channel must stay selected
+      selection[key] = set;
+      if (key === 'global') selection.leads = new Set(set);
+      pickers.forEach(p => p.refresh());
+      render();
+    };
+    function refresh() {
+      const set = selection[key];
+      btn.textContent = channelLabel(set);
+      el.querySelectorAll('input').forEach(i => i.checked = set.has(i.value));
+    }
+    btn.addEventListener('click', () => open(panel.hidden));
+    panel.addEventListener('change', () => apply(new Set([...el.querySelectorAll('input:checked')].map(i => i.value))));
+    panel.addEventListener('click', (e) => {
+      if (e.target.dataset.only) apply(new Set([e.target.dataset.only]));
+      if (e.target.hasAttribute('data-all')) apply(new Set(channels));
+      if (e.target.hasAttribute('data-close')) { open(false); btn.focus(); }
+    });
+    document.addEventListener('click', (e) => { if (!el.contains(e.target)) open(false); });
+    el.addEventListener('keydown', (e) => { if (e.key === 'Escape') { open(false); btn.focus(); } });
+    pickers.push({ refresh });
+    refresh();
+  }
+  document.querySelectorAll('[data-picker]').forEach(el => makePicker(el, el.dataset.picker));
+
+  // ---------- Sortable tables ----------
+  // cols: { key, label, val(item) → number|string for sorting, fmt(item) → cell HTML, cls?(item), text?: true }
+  const sortState = { channels: { key: 'leads', dir: -1 }, team: { key: 'leads', dir: -1 } };
+  function renderTable(id, stateKey, cols, items, total) {
+    const st = sortState[stateKey], col = cols.find(c => c.key === st.key);
+    const sorted = [...items].sort((a, b) => {
+      const va = col.val(a), vb = col.val(b);
+      if (typeof va === 'string') return st.dir * va.localeCompare(vb);
+      return st.dir * ((isNaN(va) ? -Infinity : va) - (isNaN(vb) ? -Infinity : vb));
+    });
+    const row = (it, cls = '') => `<tr class="${cls}">${cols.map(c => `<td class="${c.cls ? c.cls(it) : ''}">${c.fmt(it)}</td>`).join('')}</tr>`;
+    $(id).innerHTML = `<thead><tr>${cols.map(c => {
+        const active = c.key === st.key;
+        return `<th aria-sort="${active ? (st.dir > 0 ? 'ascending' : 'descending') : 'none'}"><button type="button" class="sort" data-key="${c.key}" title="Sort by ${c.label}">${c.label}<span class="arrow">${active ? (st.dir > 0 ? '▲' : '▼') : '↕'}</span></button></th>`;
+      }).join('')}</tr></thead><tbody>${sorted.map(it => row(it)).join('')}${total ? row(total, 'total') : ''}</tbody>`;
+    $(id).querySelectorAll('button.sort').forEach(b => b.addEventListener('click', () => {
+      if (st.key === b.dataset.key) st.dir *= -1;
+      else { st.key = b.dataset.key; st.dir = cols.find(c => c.key === st.key).text ? 1 : -1; }   // text A→Z, numbers high→low
+      renderTable(id, stateKey, cols, items, total);
+      $(id).querySelector(`button[data-key="${st.key}"]`).focus();
+    }));
+  }
 
   // ---------- Metrics ----------
   // Counts and money are divided by `months` (monthly average); rates are pooled over all rows.
@@ -300,8 +399,8 @@
     };
   }
   const inMonths = (rows, from, to) => rows.filter(r => r.month >= from && r.month <= to);
-  function targetFor(month, channel) {
-    const t = targets.filter(t => t.month === month && (!channel || t.channel === channel));
+  function targetFor(month, channelSet) {
+    const t = targets.filter(t => t.month === month && channelSet.has(t.channel));
     if (!t.length) return null;
     const leadsT = t.reduce((s, x) => s + x.leads_target, 0), salesT = t.reduce((s, x) => s + x.sales_target, 0);
     return { leads: leadsT, sales: salesT, conv: leadsT ? salesT / leadsT : NaN };
@@ -376,14 +475,15 @@
 
   // ---------- Render ----------
   function render() {
-    const sel = $('f-month').value, fc = $('f-channel').value, fs = $('f-salesperson').value;
+    const sel = $('f-month').value, fs = $('f-salesperson').value;
+    const chSet = selection.global, chName = channelLabel(chSet);
     const lm = monthAdd(sel, -1), ly = monthAdd(sel, -12), l12From = monthAdd(sel, -12), l12To = monthAdd(sel, -1);
-    const rows = leads.filter(l => (!fc || l.channel === fc) && (!fs || l.salesperson === fs));
+    const rows = leads.filter(l => chSet.has(l.channel) && (!fs || l.salesperson === fs));
     const cur = metrics(rows.filter(r => r.month === sel));
     const mLM = metrics(rows.filter(r => r.month === lm));
     const mLY = metrics(rows.filter(r => r.month === ly));
     const m12 = metrics(inMonths(rows, l12From, l12To), 12);
-    const tgt = fs ? null : targetFor(sel, fc);
+    const tgt = fs ? null : targetFor(sel, chSet);
     const selName = monthName(sel), l12Name = `${monthName(l12From)} – ${monthName(l12To)}`;
 
     // KPI cards
@@ -405,18 +505,18 @@
       card('Gross profit', 'gross', usdK, '%', true);
 
     // Funnel
-    $('funnel-sub').textContent = `${selName} vs. L12M average (${l12Name})`;
+    $('funnel-sub').textContent = `${chName} · ${selName} vs. L12M average (${l12Name})`;
     drawFunnel(cur, m12);
     $('i-funnel').textContent = cur.leads && m12.leads
       ? `In ${selName}, ${pct(cur.contactRate, 0)} of leads were contacted, against ${pct(m12.contactRate, 0)} on average over the last 12 months. The biggest drop is before the first contact.`
       : '';
 
     // Monthly charts
-    const lc = $('leads-channel').value;
-    $('leads-sub').textContent = `${lc || 'All channels'} · ${year} actual vs. target and last year`;
-    $('sales-sub').textContent = `${fc || 'All channels'}${fs ? ' · ' + fs : ''} · ${year} actual vs. ${fs ? '' : 'target and '}last year`;
-    monthlyChart('c-leads', leads.filter(l => (!lc || l.channel === lc) && (!fs || l.salesperson === fs)), 'leads', lc, !fs, 'Leads');
-    monthlyChart('c-sales', rows, 'sales', fc, !fs, 'Sales');
+    const lcSet = selection.leads;
+    $('leads-sub').textContent = `${channelLabel(lcSet)}${fs ? ' · ' + fs : ''} · ${year} actual vs. ${fs ? '' : 'target and '}last year`;
+    $('sales-sub').textContent = `${chName}${fs ? ' · ' + fs : ''} · ${year} actual vs. ${fs ? '' : 'target and '}last year`;
+    monthlyChart('c-leads', leads.filter(l => lcSet.has(l.channel) && (!fs || l.salesperson === fs)), 'leads', lcSet, !fs, 'Leads');
+    monthlyChart('c-sales', rows, 'sales', chSet, !fs, 'Sales');
 
     // Speed to lead (pre-pilot)
     const bands = [['< 1 h', h => h < 1], ['1 – 24 h', h => h >= 1 && h <= 24], ['> 24 h', h => h > 24]];
@@ -435,7 +535,7 @@
 
     // Contact rate by channel
     $('channel-sub').textContent = `${selName} vs. L12M average (${l12Name})`;
-    const visible = fc ? [fc] : channels;
+    const visible = channels.filter(c => chSet.has(c));
     const rate = (from, to, ch) => { const x = inMonths(rows, from, to).filter(r => r.channel === ch); return x.length ? x.filter(r => r.contacted === 'yes').length / x.length : NaN; };
     const order = [...visible].sort((a, b) => rate(l12From, l12To, a) - rate(l12From, l12To, b));
     draw('c-channel', {
@@ -460,32 +560,47 @@
       const [cls, icon] = r >= 1 ? ['good', '✓'] : r >= 0.9 ? ['warning', '●'] : ['critical', '✗'];
       return `<span class="status ${cls}">${icon} ${pct(r, 0)}</span>`;
     };
-    const scoreRow = (label, ch, cls = '') => {
-      const sub = ch ? rows.filter(r => r.channel === ch) : rows;
-      const m = metrics(sub.filter(r => r.month === sel)), r12 = metrics(inMonths(sub, l12From, l12To), 12), mly = metrics(sub.filter(r => r.month === ly));
-      const t = fs ? null : targetFor(sel, ch);
-      return `<tr class="${cls}"><td>${label}</td><td>${num(m.leads)}</td><td>${t ? num(t.leads) : '—'}</td><td>${t ? status(m.leads, t.leads) : '—'}</td>
-        <td>${num(m.sales)}</td><td>${t ? num(t.sales, 1) : '—'}</td><td>${t ? status(m.sales, t.sales) : '—'}</td>
-        <td>${pct(m.conv)}</td><td>${delta(m.conv, r12.conv, 'pp', true)}</td><td>${delta(m.sales, mly.sales, '%', true)}</td></tr>`;
+    const scoreItem = (label, set) => {
+      const sub = rows.filter(r => set.has(r.channel));
+      return { label, m: metrics(sub.filter(r => r.month === sel)), r12: metrics(inMonths(sub, l12From, l12To), 12),
+        mly: metrics(sub.filter(r => r.month === ly)), t: fs ? null : targetFor(sel, set) };
     };
-    $('t-channels').innerHTML = `<thead><tr><th>Channel</th><th>Leads</th><th>Target</th><th>vs target</th><th>Sales</th><th>Target</th><th>vs target</th><th>Conv.</th><th>Conv. vs L12M</th><th>Sales YoY</th></tr></thead><tbody>` +
-      visible.map(c => scoreRow(c, c)).join('') + (fc ? '' : scoreRow('Total', '', 'total')) + '</tbody>';
+    const ratio = (a, b) => b ? a / b : NaN;
+    renderTable('t-channels', 'channels', [
+      { key: 'channel', label: 'Channel', text: true, val: i => i.label, fmt: i => i.label },
+      { key: 'leads', label: 'Leads', val: i => i.m.leads, fmt: i => num(i.m.leads) },
+      { key: 'leadsT', label: 'Target', val: i => i.t ? i.t.leads : NaN, fmt: i => i.t ? num(i.t.leads) : '—' },
+      { key: 'leadsVsT', label: 'vs target', val: i => i.t ? ratio(i.m.leads, i.t.leads) : NaN, fmt: i => i.t ? status(i.m.leads, i.t.leads) : '—' },
+      { key: 'sales', label: 'Sales', val: i => i.m.sales, fmt: i => num(i.m.sales) },
+      { key: 'salesT', label: 'Target', val: i => i.t ? i.t.sales : NaN, fmt: i => i.t ? num(i.t.sales, 1) : '—' },
+      { key: 'salesVsT', label: 'vs target', val: i => i.t ? ratio(i.m.sales, i.t.sales) : NaN, fmt: i => i.t ? status(i.m.sales, i.t.sales) : '—' },
+      { key: 'conv', label: 'Conv.', val: i => i.m.conv, fmt: i => pct(i.m.conv) },
+      { key: 'convVsL12M', label: 'Conv. vs L12M', val: i => i.m.conv - i.r12.conv, fmt: i => delta(i.m.conv, i.r12.conv, 'pp', true) },
+      { key: 'salesYoY', label: 'Sales YoY', val: i => ratio(i.m.sales - i.mly.sales, i.mly.sales), fmt: i => delta(i.m.sales, i.mly.sales, '%', true) },
+    ], visible.map(c => scoreItem(c, new Set([c]))), visible.length > 1 ? scoreItem(chSet.size === channels.length ? 'Total' : 'Total (selection)', chSet) : null);
 
     // Sales team
-    $('team-sub').textContent = `${selName} · conversion compared with each salesperson's L12M average`;
+    $('team-sub').textContent = `${chName} · ${selName} · conversion compared with each salesperson's L12M average`;
     const monthRows = rows.filter(r => r.month === sel);
     const team = (fs ? [fs] : salespeople).map(s => {
       const sub = rows.filter(r => r.salesperson === s);
       return { s, m: metrics(sub.filter(r => r.month === sel)), r12: metrics(inMonths(sub, l12From, l12To), 12) };
-    }).sort((a, b) => b.m.leads - a.m.leads);
-    $('t-salespeople').innerHTML = `<thead><tr><th>Salesperson</th><th>Leads</th><th>Share of leads</th><th>Contact rate</th><th>Median response</th><th>Sales</th><th>Conversion</th><th>L12M conversion</th><th>Change</th></tr></thead><tbody>` +
-      team.map(t => `<tr><td>${t.s}</td><td>${num(t.m.leads)}</td><td>${pct(t.m.leads / (monthRows.length || 1), 0)}</td>
-        <td class="${t.m.contactRate < 0.7 ? 'status critical' : ''}">${pct(t.m.contactRate, 0)}${t.m.contactRate < 0.7 ? ' ⚠' : ''}</td>
-        <td>${isNaN(t.m.median) ? '—' : num(t.m.median, 1) + ' h'}</td><td>${num(t.m.sales)}</td><td>${pct(t.m.conv)}</td><td>${pct(t.r12.conv)}</td>
-        <td>${delta(t.m.conv, t.r12.conv, 'pp', true)}</td></tr>`).join('') + '</tbody>';
+    });
+    const low = t => t.m.contactRate < 0.7;
+    renderTable('t-salespeople', 'team', [
+      { key: 'name', label: 'Salesperson', text: true, val: t => t.s, fmt: t => t.s },
+      { key: 'leads', label: 'Leads', val: t => t.m.leads, fmt: t => num(t.m.leads) },
+      { key: 'share', label: 'Share of leads', val: t => t.m.leads / (monthRows.length || 1), fmt: t => pct(t.m.leads / (monthRows.length || 1), 0) },
+      { key: 'contact', label: 'Contact rate', val: t => t.m.contactRate, fmt: t => pct(t.m.contactRate, 0) + (low(t) ? ' ⚠' : ''), cls: t => low(t) ? 'status critical' : '' },
+      { key: 'median', label: 'Median response', val: t => t.m.median, fmt: t => isNaN(t.m.median) ? '—' : num(t.m.median, 1) + ' h' },
+      { key: 'sales', label: 'Sales', val: t => t.m.sales, fmt: t => num(t.m.sales) },
+      { key: 'conv', label: 'Conversion', val: t => t.m.conv, fmt: t => pct(t.m.conv) },
+      { key: 'conv12', label: 'L12M conversion', val: t => t.r12.conv, fmt: t => pct(t.r12.conv) },
+      { key: 'change', label: 'Change', val: t => t.m.conv - t.r12.conv, fmt: t => delta(t.m.conv, t.r12.conv, 'pp', true) },
+    ], team, null);
   }
 
-  ['f-month', 'f-channel', 'f-salesperson', 'leads-channel'].forEach(id => $(id).addEventListener('change', render));
+  ['f-month', 'f-salesperson'].forEach(id => $(id).addEventListener('change', render));
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
   render();
 })();
