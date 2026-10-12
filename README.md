@@ -30,6 +30,7 @@ Method details and an express-diagnosis questionnaire: [docs/methodology.md](doc
 
 - 📝 [Quote request form](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/3-implementation/form.html)
 - 📊 [Lead → Sale dashboard](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/dashboard.html)
+- 📈 [Demand & Mix: trends, seasonality and inventory health](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/demand.html)
 
 > Both demos run live on GitHub Pages. The dashboard uses synthetic data; the form runs in demo mode.
 
@@ -47,7 +48,7 @@ Method details and an express-diagnosis questionnaire: [docs/methodology.md](doc
     ├── 1-diagnosis.md        AS-IS, findings, root cause
     ├── 2-proposal.md         TO-BE, SLAs, KPIs, plan, risks
     ├── 3-implementation/     form + Apps Script
-    ├── 4-measurement/        monthly dashboard (LM / L12M / YoY / target)
+    ├── 4-measurement/        Lead → Sale dashboard + Demand & Mix page
     └── 5-impact.md           results and economic value
 ```
 

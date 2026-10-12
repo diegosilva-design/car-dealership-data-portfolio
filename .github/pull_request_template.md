@@ -17,6 +17,10 @@ Test locally (or on the staging preview) before merging into `main`. Merging pub
 - [ ] Table columns sort in both directions; Total row stays at the bottom
 - [ ] Readable on a phone-width screen (no sideways scrolling outside tables)
 
+**Demand & Mix page**
+- [ ] Leads / Sales toggle and Area filter update every card, chart and table
+- [ ] Inventory month menu updates the chart, table and note
+
 **Form**
 - [ ] Submits in demo mode and shows the confirmation with an assigned advisor
 - [ ] Validation messages appear for missing fields
