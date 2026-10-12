@@ -21,6 +21,10 @@ Test locally (or on the staging preview) before merging into `main`. Merging pub
 - [ ] Leads / Sales toggle and Area filter update every card, chart and table
 - [ ] Inventory month menu updates the chart, table and note
 
+**Forecast**
+- [ ] If data changed: notebook re-run (`py -m jupyter nbconvert --to notebook --execute --inplace 02-demand-forecast/demand_forecast.ipynb`) and `forecast.csv`, `backtest.csv`, `forecast.js` committed
+- [ ] Forecast page loads with no errors; segment menu updates the chart and note
+
 **Form**
 - [ ] Submits in demo mode and shows the confirmation with an assigned advisor
 - [ ] Validation messages appear for missing fields

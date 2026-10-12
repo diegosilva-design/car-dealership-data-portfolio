@@ -1,0 +1,16 @@
+month,segment,model,leads_forecast,leads_low,leads_high,rule_leads,conversion,sales_forecast,sales_low,sales_high
+2026-10,Sedan / compact,Regression,123.2,111.2,140.3,128.1,0.1065,13.1,11.8,14.9
+2026-11,Sedan / compact,Regression,119.6,108.0,136.3,121.8,0.1065,12.7,11.5,14.5
+2026-12,Sedan / compact,Regression,120.3,108.7,137.1,136.5,0.1065,12.8,11.6,14.6
+2026-10,Compact SUV,Last year x growth,177.0,161.4,184.3,171.2,0.1065,18.8,17.2,19.6
+2026-11,Compact SUV,Last year x growth,153.1,139.6,159.4,148.0,0.1065,16.3,14.9,17.0
+2026-12,Compact SUV,Last year x growth,192.2,175.3,200.1,185.8,0.1065,20.5,18.7,21.3
+2026-10,Midsize SUV,Current rule (LY +5%),55.6,47.5,63.0,55.6,0.1065,5.9,5.1,6.7
+2026-11,Midsize SUV,Current rule (LY +5%),58.8,50.2,66.6,58.8,0.1065,6.3,5.3,7.1
+2026-12,Midsize SUV,Current rule (LY +5%),59.8,51.1,67.8,59.8,0.1065,6.4,5.4,7.2
+2026-10,Pickup,Regression,90.4,81.1,94.1,84.0,0.1065,9.6,8.6,10.0
+2026-11,Pickup,Regression,96.9,87.0,100.9,86.1,0.1065,10.3,9.3,10.7
+2026-12,Pickup,Regression,99.4,89.3,103.5,100.8,0.1065,10.6,9.5,11.0
+2026-10,Hybrid / EV,Holt-Winters,54.0,46.4,63.8,35.7,0.1065,5.7,4.9,6.8
+2026-11,Hybrid / EV,Holt-Winters,62.3,53.6,73.6,45.2,0.1065,6.6,5.7,7.8
+2026-12,Hybrid / EV,Holt-Winters,69.2,59.5,81.7,54.6,0.1065,7.4,6.3,8.7

@@ -1,0 +1,21 @@
+segment,model,wape,champion
+Sedan / compact,Current rule (LY +5%),10.52,False
+Sedan / compact,Last year x growth,7.86,False
+Sedan / compact,Holt-Winters,8.01,False
+Sedan / compact,Regression,7.3,True
+Compact SUV,Current rule (LY +5%),3.81,False
+Compact SUV,Last year x growth,3.07,True
+Compact SUV,Holt-Winters,3.13,False
+Compact SUV,Regression,6.14,False
+Midsize SUV,Current rule (LY +5%),9.17,True
+Midsize SUV,Last year x growth,13.59,False
+Midsize SUV,Holt-Winters,14.7,False
+Midsize SUV,Regression,13.36,False
+Pickup,Current rule (LY +5%),6.97,False
+Pickup,Last year x growth,7.25,False
+Pickup,Holt-Winters,5.99,False
+Pickup,Regression,5.35,True
+Hybrid / EV,Current rule (LY +5%),28.86,False
+Hybrid / EV,Last year x growth,21.4,False
+Hybrid / EV,Holt-Winters,11.25,True
+Hybrid / EV,Regression,17.59,False

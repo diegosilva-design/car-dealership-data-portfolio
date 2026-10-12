@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demand Forecast</title>
+<link rel="stylesheet" href="report.css">
+<style>
+  :root { --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; } }
+  :root[data-theme="dark"] { --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; }
+  .seg-kpi .title { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+  .range { font-size: 12px; color: var(--muted); margin: -6px 0 8px; }
+  .model-tag { font-size: 11px; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+  .full { margin-top: 12px; }
+  td.best { font-weight: 600; color: var(--text-primary); }
+</style>
+</head>
+<body>
+<main>
+  <nav class="tabs" aria-label="Report pages">
+    <a href="dashboard.html">Lead → Sale</a>
+    <a href="demand.html">Demand &amp; Mix</a>
+    <a href="forecast.html" aria-current="page">Forecast</a>
+  </nav>
+  <header>
+    <h1>Demand forecast</h1>
+    <p id="header-sub">Redwood Auto Group · Leads and expected sales by segment for the next 3 months</p>
+    <p class="note">Built in the <a href="https://github.com/diegosilva-design/car-dealership-data-portfolio/blob/main/02-demand-forecast/demand_forecast.ipynb">forecast notebook</a> (Python · statsmodels) from synthetic data. The company is fictional.</p>
+  </header>
+
+  <div class="section-title">Next 3 months by segment
+    <span class="info" tabindex="0" aria-label="How to read the forecast cards">i<span class="tip" role="tooltip">
+      <b>Leads forecast</b> = expected customer inquiries over the next 3 months, from the most accurate model for that segment.
+      The <b>likely range</b> shows where the real number should land about 8 times out of 10, based on how wrong the model was in testing.
+      <b>vs current rule</b> compares it with the dealership's ordering rule today (same month last year +5%).
+      <b>Expected sales</b> applies the store-wide conversion of the pilot (10.7%).
+    </span></span>
+  </div>
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid2">
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>History and forecast
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Monthly leads for one segment (solid line), the forecast (dashed) with its likely range (shaded band), and what the current rule would have assumed (gray).
+            When the forecast sits above the gray line, today's ordering rule will under-stock that segment.
+          </span></span></h2>
+        <p class="sub" id="hist-sub"></p></div>
+        <label class="card-control">Segment <select id="f-seg"></select></label>
+      </div>
+      <div class="canvas"><canvas id="c-hist" role="img" aria-label="Leads history and forecast"></canvas></div>
+      <p class="insight" id="i-hist"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>How accurate is each approach?
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Backtest error (WAPE): each model forecast 3 months ahead from 7 past starting points (Dec 2025 – Jun 2026) without seeing what came next.
+            8% means it was off by 8 leads for every 100. Lower is better. The chosen model (blue) is the most accurate one for each segment; gray is the current rule.
+          </span></span></h2>
+        <p class="sub">Backtest error by segment · chosen model vs current rule</p></div>
+      </div>
+      <div class="canvas"><canvas id="c-acc" role="img" aria-label="Backtest error by segment"></canvas></div>
+      <p class="insight" id="i-acc"></p>
+    </div>
+  </section>
+
+  <section class="card full">
+    <div class="card-head"><div>
+      <h2>Forecast detail
+        <span class="info" tabindex="0" aria-label="About this table">i<span class="tip" role="tooltip">
+          Month-by-month forecast per segment with its likely range, the current rule for comparison, and expected sales.
+          These are the numbers inventory planning should start from (next step: recommended orders).
+        </span></span></h2>
+      <p class="sub">Leads and expected sales per month</p></div>
+    </div>
+    <div class="table-wrap"><table id="t-detail"></table></div>
+  </section>
+
+  <section class="card full">
+    <div class="card-head"><div>
+      <h2>All models tested
+        <span class="info" tabindex="0" aria-label="About this table">i<span class="tip" role="tooltip">
+          Backtest error of every model in every segment. The lowest error per segment (bold) is the chosen model.
+          Where the simple rule wins, there is no reason to use something more complex.
+        </span></span></h2>
+      <p class="sub">Backtest error (WAPE) · lower is better</p></div>
+    </div>
+    <div class="table-wrap"><table id="t-models"></table></div>
+  </section>
+
+  <footer>
+    Part of the <a href="https://github.com/diegosilva-design/car-dealership-data-portfolio/tree/main/02-demand-forecast">Demand forecast</a> case · Process & data analysis portfolio.
+  </footer>
+</main>
+
+<script src="../../data/data.js"></script>
+<script src="../../data/forecast.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const num = (x, d = 0) => (x == null || isNaN(x)) ? '—' : x.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+  const signed = (x, d = 0, unit = '%') => (x == null || isNaN(x)) ? '—' : `${x > 0 ? '▲' : x < 0 ? '▼' : '±'} ${Math.abs(x).toFixed(d)}${unit}`;
+  function parseCSV(txt) {
+    const [head, ...rows] = txt.trim().split(/\r?\n/);
+    const cols = head.split(',');
+    const clean = s => (s || '').trim();   // tolerate Windows line endings
+    return rows.map(r => { const v = r.split(',').map(clean); const o = {}; cols.map(clean).forEach((c, i) => o[c] = isNaN(v[i]) || v[i] === '' ? v[i] : +v[i]); return o; });
+  }
+  const leads = parseCSV(window.LEADS_CSV);
+  const forecast = parseCSV(window.FORECAST_CSV);
+  const backtest = parseCSV(window.BACKTEST_CSV);
+  const SEGMENTS = ['Sedan / compact', 'Compact SUV', 'Midsize SUV', 'Pickup', 'Hybrid / EV'];
+  const colors = () => SEGMENTS.map((_, i) => css(`--s${i + 1}`));
+  const monthName = (m, withYear = true) => new Date(m + '-15T12:00').toLocaleDateString('en-US', withYear ? { month: 'short', year: 'numeric' } : { month: 'short' });
+  const fMonths = [...new Set(forecast.map(f => f.month))].sort();
+  const hMonths = [...new Set(leads.map(l => l.month))].sort();
+  const counts = {};
+  leads.forEach(l => { const k = l.month + '|' + l.segment; counts[k] = (counts[k] || 0) + 1; });
+  const sum = (seg, key) => forecast.filter(f => f.segment === seg).reduce((s, f) => s + f[key], 0);
+  const ruleW = seg => backtest.find(b => b.segment === seg && b.model.startsWith('Current rule')).wape;
+  const champ = seg => backtest.find(b => b.segment === seg && String(b.champion).toLowerCase() === 'true');
+  SEGMENTS.forEach(s => $('f-seg').add(new Option(s, s)));
+  $('f-seg').value = 'Hybrid / EV';
+  $('header-sub').textContent = `Redwood Auto Group · Leads and expected sales by segment, ${monthName(fMonths[0])} – ${monthName(fMonths[fMonths.length - 1])}`;
+
+  const charts = {};
+  function draw(id, config) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), config); }
+  const legend = () => ({ display: true, position: 'top', align: 'end', labels: { color: css('--text-secondary'), usePointStyle: true, boxWidth: 8, boxHeight: 8, font: { size: 12 }, filter: i => !i.text.startsWith('_') } });
+  const axisX = () => ({ grid: { display: false }, border: { color: css('--axis') }, ticks: { color: css('--text-secondary'), maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } });
+  const axisY = (fmt) => ({ grid: { color: css('--grid') }, border: { color: css('--axis') }, ticks: { color: css('--muted'), callback: fmt }, beginAtZero: true });
+
+  function render() {
+    const c = colors();
+    // ----- KPI cards -----
+    $('kpis').innerHTML = SEGMENTS.map((s, i) => {
+      const f = sum(s, 'leads_forecast'), lo = sum(s, 'leads_low'), hi = sum(s, 'leads_high'), rule = sum(s, 'rule_leads');
+      const d = (f / rule - 1) * 100;
+      return `<div class="card kpi seg-kpi"><div class="title"><span class="swatch" style="background:${c[i]}"></span>${s}</div>
+        <div class="value">${num(f)}</div><div class="range">leads · likely ${num(lo)}–${num(hi)}</div><dl>
+        <dt>vs current rule</dt><dd><span class="${Math.abs(d) < 3 ? '' : d > 0 ? 'up-good' : 'down-bad'}">${signed(d)}</span></dd>
+        <dt>Expected sales</dt><dd>${num(sum(s, 'sales_low'))}–${num(sum(s, 'sales_high'))}</dd>
+        <dt>Model</dt><dd><span class="model-tag">${champ(s).model}</span></dd></dl></div>`;
+    }).join('');
+
+    // ----- History + forecast for one segment -----
+    const seg = $('f-seg').value, si = SEGMENTS.indexOf(seg);
+    const histFrom = hMonths.findIndex(m => m >= '2025-01');
+    const labels = [...hMonths.slice(histFrom), ...fMonths];
+    const nH = hMonths.length - histFrom;
+    const actual = labels.map((m, i) => i < nH ? (counts[m + '|' + seg] || 0) : null);
+    const fc = f => labels.map((m, i) => { if (i === nH - 1) return actual[i]; const r = forecast.find(x => x.month === m && x.segment === seg); return r ? r[f] : null; });
+    const lastIdx = nH - 1;
+    const band = k => fc(k).map((v, i) => i === lastIdx ? actual[i] : v);
+    $('hist-sub').textContent = `${seg} · monthly leads, ${monthName(labels[0])} – ${monthName(labels[labels.length - 1])}`;
+    draw('c-hist', {
+      type: 'line',
+      data: { labels: labels.map(m => monthName(m)), datasets: [
+        { label: '_low', data: band('leads_low'), borderWidth: 0, pointRadius: 0, fill: false },
+        { label: 'Likely range', data: band('leads_high'), borderWidth: 0, pointRadius: 0, backgroundColor: c[si] + '33', fill: '-1', pointStyle: 'rect' },
+        { label: 'Actual leads', data: actual, borderColor: c[si], backgroundColor: c[si], borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: 0, pointStyle: 'circle' },
+        { label: 'Forecast', data: fc('leads_forecast'), borderColor: c[si], backgroundColor: c[si], borderWidth: 2, borderDash: [6, 4], pointRadius: labels.map((_, i) => i > lastIdx ? 4 : 0), tension: 0, pointStyle: 'circle' },
+        { label: 'Current rule', data: labels.map((m, i) => { const r = forecast.find(x => x.month === m && x.segment === seg); return r ? r.rule_leads : null; }), borderColor: css('--reference'), backgroundColor: css('--reference'), borderWidth: 2, borderDash: [2, 3], pointRadius: 4, pointStyle: 'triangle', tension: 0 },
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: legend(), tooltip: { filter: i => !i.dataset.label.startsWith('_') && i.raw != null, callbacks: { label: x => `${x.dataset.label}: ${num(x.raw)}` } } },
+        scales: { x: axisX(), y: axisY(v => num(v)) } },
+    });
+    const f = sum(seg, 'leads_forecast'), rule = sum(seg, 'rule_leads');
+    const d = (f / rule - 1) * 100;
+    $('i-hist').textContent = Math.abs(d) < 3
+      ? `For ${seg}, the forecast and the current rule agree (${num(f)} vs ${num(rule)} leads): ordering as usual is fine.`
+      : `For ${seg}, the model expects ${num(f)} leads over the next 3 months vs ${num(rule)} under the current rule (${signed(d)}). Ordering by the rule would ${d > 0 ? 'under' : 'over'}-stock this segment.`;
+
+    // ----- Accuracy: champion vs current rule -----
+    draw('c-acc', {
+      type: 'bar',
+      data: { labels: SEGMENTS, datasets: [
+        { label: 'Current rule', data: SEGMENTS.map(ruleW), backgroundColor: css('--reference'), borderRadius: 4, maxBarThickness: 22, pointStyle: 'rect' },
+        { label: 'Chosen model', data: SEGMENTS.map(s => champ(s).wape), backgroundColor: css('--accent'), borderRadius: 4, maxBarThickness: 22, pointStyle: 'rect' },
+      ] },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false, axis: 'y' },
+        plugins: { legend: legend(), tooltip: { callbacks: { label: x => `${x.dataset.label}${x.datasetIndex === 1 ? ` (${champ(SEGMENTS[x.dataIndex]).model})` : ''}: ${num(x.raw, 1)}%` } } },
+        scales: { x: axisY(v => v + '%'), y: { grid: { display: false }, border: { color: css('--axis') }, ticks: { color: css('--text-secondary') } } } },
+    });
+    const allRule = SEGMENTS.reduce((s, x) => s + ruleW(x), 0) / SEGMENTS.length, allChamp = SEGMENTS.reduce((s, x) => s + champ(x).wape, 0) / SEGMENTS.length;
+    const big = SEGMENTS.map(s => ({ s, gain: ruleW(s) - champ(s).wape })).sort((a, b) => b.gain - a.gain)[0];
+    $('i-acc').textContent = `Average error falls from ${num(allRule, 1)}% with the current rule to ${num(allChamp, 1)}% with the chosen models. The biggest gain is ${big.s} (${num(ruleW(big.s), 1)}% → ${num(champ(big.s).wape, 1)}%), the segment that is growing fastest.`;
+
+    // ----- Detail table -----
+    $('t-detail').innerHTML = `<thead><tr><th>Segment</th><th>Month</th><th>Leads forecast</th><th>Likely range</th><th>Current rule</th><th>vs rule</th><th>Expected sales</th><th>Sales range</th></tr></thead><tbody>` +
+      SEGMENTS.map(s => forecast.filter(r => r.segment === s).map((r, j) => `<tr><td>${j === 0 ? s : ''}</td><td>${monthName(r.month)}</td><td>${num(r.leads_forecast)}</td>
+        <td>${num(r.leads_low)}–${num(r.leads_high)}</td><td>${num(r.rule_leads)}</td><td>${signed((r.leads_forecast / r.rule_leads - 1) * 100)}</td>
+        <td>${num(r.sales_forecast, 1)}</td><td>${num(r.sales_low, 1)}–${num(r.sales_high, 1)}</td></tr>`).join('')).join('') + '</tbody>';
+
+    // ----- All models -----
+    const models = [...new Set(backtest.map(b => b.model))];
+    $('t-models').innerHTML = `<thead><tr><th>Segment</th>${models.map(m => `<th>${m}</th>`).join('')}</tr></thead><tbody>` +
+      SEGMENTS.map(s => `<tr><td>${s}</td>${models.map(m => { const b = backtest.find(x => x.segment === s && x.model === m); const best = String(b.champion).toLowerCase() === 'true';
+        return `<td class="${best ? 'best' : ''}">${num(b.wape, 1)}%${best ? ' ✓' : ''}</td>`; }).join('')}</tr>`).join('') + '</tbody>';
+  }
+
+  $('f-seg').addEventListener('change', render);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+  render();
+})();
+</script>
+</body>
+</html>
