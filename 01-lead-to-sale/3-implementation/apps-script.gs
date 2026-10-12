@@ -28,10 +28,19 @@ const PRICES = {
   'Honda CR-V': 31000, 'Hyundai Elantra': 22500, 'Hyundai Tucson': 29900,
   'Ford F-150': 41000, 'Ford Explorer': 41500, 'Kia Sportage': 29500,
   'Nissan Rogue': 30500, 'Jeep Grand Cherokee': 39000,
+  'Toyota RAV4 Hybrid': 33500, 'Toyota Camry Hybrid': 29500, 'Hyundai Ioniq 5': 43000,
+};
+
+// Segment of each model (same grouping as data/leads.csv)
+const SEGMENTS = {
+  'Toyota Corolla': 'Sedan / compact', 'Honda Civic': 'Sedan / compact', 'Hyundai Elantra': 'Sedan / compact', 'Chevrolet Trax': 'Sedan / compact',
+  'Toyota RAV4': 'Compact SUV', 'Honda CR-V': 'Compact SUV', 'Chevrolet Equinox': 'Compact SUV', 'Hyundai Tucson': 'Compact SUV', 'Kia Sportage': 'Compact SUV', 'Nissan Rogue': 'Compact SUV',
+  'Ford Explorer': 'Midsize SUV', 'Jeep Grand Cherokee': 'Midsize SUV', 'Ford F-150': 'Pickup', 'Toyota Tacoma': 'Pickup',
+  'Toyota RAV4 Hybrid': 'Hybrid / EV', 'Toyota Camry Hybrid': 'Hybrid / EV', 'Hyundai Ioniq 5': 'Hybrid / EV',
 };
 
 // Public columns (same as data/leads.csv) + internal columns holding personal data.
-const PUBLIC_COLS = ['lead_id', 'lead_date', 'month', 'period', 'channel', 'brand', 'model', 'price_usd', 'city',
+const PUBLIC_COLS = ['lead_id', 'lead_date', 'month', 'period', 'channel', 'brand', 'model', 'segment', 'price_usd', 'city',
   'salesperson', 'contacted', 'hours_to_first_contact', 'test_drive', 'quote', 'sale', 'sale_date', 'gross_profit_usd'];
 const INTERNAL_COLS = ['status', 'contact_date', 'alert', 'name', 'phone', 'email', 'payment', 'trade_in', 'comment'];
 const COLUMNS = PUBLIC_COLS.concat(INTERNAL_COLS);
@@ -80,7 +89,7 @@ function doPost(e) {
     const row = {
       lead_id: id, lead_date: Utilities.formatDate(now, tz, 'yyyy-MM-dd HH:mm'), month: Utilities.formatDate(now, tz, 'yyyy-MM'),
       period: 'pilot', channel: d.channel, brand: brand, model: d.model.substring(brand.length + 1) || d.model,
-      price_usd: PRICES[d.model] || '', city: d.city || '', salesperson: salesperson.name,
+      segment: SEGMENTS[d.model] || '', price_usd: PRICES[d.model] || '', city: d.city || '', salesperson: salesperson.name,
       contacted: walkIn ? 'yes' : 'no', hours_to_first_contact: walkIn ? 0.1 : '',
       test_drive: 'no', quote: 'no', sale: 'no', sale_date: '', gross_profit_usd: '',
       status: walkIn ? 'Contacted' : 'New', contact_date: '', alert: 0,

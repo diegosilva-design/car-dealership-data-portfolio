@@ -10,7 +10,7 @@
 
 | # | Case | Business question | Result | Status |
 |---|---|---|---|---|
-| 01 | [**Lead → Sale**](01-lead-to-sale/README.md) | Why do so many interested customers turn into so few sales? | Conversion 6.8% → 10.7% · ~$27K/month in additional gross profit (base scenario) | ✅ Complete |
+| 01 | [**Lead → Sale**](01-lead-to-sale/README.md) | Why do so many interested customers turn into so few sales? | Conversion 6.8% → 10.7% · ~$29K/month in additional gross profit (base scenario) | ✅ Complete |
 | 02 | Service shop / After-sales | How long does each service take, and how satisfied are customers? | — | 🔜 Coming soon |
 | 03 | Used-car trade-in appraisal | How do we appraise faster, with consistent criteria? | — | 🔜 Coming soon |
 
@@ -40,7 +40,7 @@ Method details and an express-diagnosis questionnaire: [docs/methodology.md](doc
 ## Structure
 
 ```
-├── data/                     synthetic leads (2025–2026), 2026 targets + the script that generates them
+├── data/                     synthetic leads (2024–2026), 2026 targets, inventory + the script that generates them
 ├── docs/methodology.md       how I work
 └── 01-lead-to-sale/
     ├── README.md             executive summary

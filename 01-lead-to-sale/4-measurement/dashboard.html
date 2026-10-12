@@ -219,10 +219,10 @@
         <h2>Speed to lead
           <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
             Of the leads that were contacted, the share that ended in a sale, grouped by how long the first contact took.
-            Uses all months before the pilot (Jan 2025 – Jun 2026) and excludes walk-ins, who are attended on the spot.
+            Uses all months before the pilot and excludes walk-ins, who are attended on the spot.
             This is the evidence behind the 1-hour response target.
           </span></span></h2>
-        <p class="sub">Lead → sale conversion by hours to first contact · Jan 2025 – Jun 2026</p></div>
+        <p class="sub" id="speed-sub"></p></div>
       </div>
       <div class="canvas"><canvas id="c-speed" role="img" aria-label="Conversion by time to first contact"></canvas></div>
       <p class="insight" id="i-speed"></p>
@@ -524,6 +524,8 @@
     // Speed to lead (pre-pilot)
     const bands = [['< 1 h', h => h < 1], ['1 – 24 h', h => h >= 1 && h <= 24], ['> 24 h', h => h > 24]];
     const cont = rows.filter(r => r.period === 'pre-pilot' && r.contacted === 'yes' && r.channel !== 'Walk-in');
+    const prePilot = allMonths.filter(m => leads.some(l => l.month === m && l.period === 'pre-pilot'));
+    $('speed-sub').textContent = `Lead → sale conversion by hours to first contact · ${monthName(prePilot[0])} – ${monthName(prePilot[prePilot.length - 1])} (before the pilot)`;
     const speed = bands.map(([, f]) => { const g = cont.filter(r => f(+r.hours_to_first_contact)); return { n: g.length, conv: g.length ? g.filter(r => r.sale === 'yes').length / g.length : 0 }; });
     draw('c-speed', {
       type: 'bar',
