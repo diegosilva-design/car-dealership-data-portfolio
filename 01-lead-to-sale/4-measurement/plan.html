@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory Plan</title>
+<link rel="stylesheet" href="report.css">
+<style>
+  :root { --c-hold: #2a78d6; --c-transfer: #eda100; --c-lost: #e34948; --plan: #2a78d6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c-hold: #3987e5; --c-transfer: #c98500; --c-lost: #e66767; --plan: #3987e5; } }
+  :root[data-theme="dark"] { --c-hold: #3987e5; --c-transfer: #c98500; --c-lost: #e66767; --plan: #3987e5; }
+  .full { margin-top: 12px; }
+  .whatif { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 24px; margin-top: 6px; }
+  .whatif label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-secondary); }
+  .whatif .row { display: flex; align-items: center; gap: 10px; }
+  .whatif input[type=range] { flex: 1; accent-color: var(--accent); }
+  .whatif output { font-weight: 600; color: var(--text-primary); min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+  .action { font-weight: 600; white-space: nowrap; }
+  .kpi .value.small { font-size: 22px; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <nav class="tabs" aria-label="Report pages">
+    <a href="dashboard.html">Lead → Sale</a>
+    <a href="demand.html">Demand &amp; Mix</a>
+    <a href="forecast.html">Forecast</a>
+    <a href="plan.html" aria-current="page">Inventory plan</a>
+  </nav>
+  <header>
+    <h1>Inventory plan</h1>
+    <p id="header-sub">Redwood Auto Group · Recommended orders vs. the current ordering rule</p>
+    <p class="note">From the <a href="https://github.com/diegosilva-design/car-dealership-data-portfolio/blob/main/02-demand-forecast/demand_forecast.ipynb">forecast notebook</a>. Synthetic data; the company is fictional.</p>
+  </header>
+
+  <div class="section-title">The quarter at a glance
+    <span class="info" tabindex="0" aria-label="How to read the summary">i<span class="tip" role="tooltip">
+      Both ordering plans are run against the same expected demand for the next 3 months, starting from today's stock.
+      <b>Current rule</b>: last year's sales for the same months +5%. <b>Forecast plan</b>: enough to end each month with 50 days of expected sales plus a safety buffer.
+      Cost = cars sitting on the lot + cars borrowed from sister stores + gross profit lost when customers buy elsewhere. Change the assumptions below to test the conclusion.
+    </span></span>
+  </div>
+  <section class="kpis" id="kpis"></section>
+
+  <section class="card full">
+    <div class="card-head"><div>
+      <h2>Recommended orders
+        <span class="info" tabindex="0" aria-label="About this table">i<span class="tip" role="tooltip">
+          What to order each month under the forecast plan, next to what the current rule would order.
+          <b>Days of supply</b> = cars in stock ÷ expected daily sales; healthy is 45–60. <b>Action</b> summarizes the change against today's rule.
+          Click a column title to sort.
+        </span></span></h2>
+      <p class="sub" id="rec-sub"></p></div>
+    </div>
+    <div class="table-wrap"><table id="t-rec"></table></div>
+  </section>
+
+  <section class="grid2">
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>Where each plan leaves the lot
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Days of supply at the end of the quarter, by segment. The shaded band is the healthy 45–60 days.
+            The current rule leaves growing segments nearly empty and sedans far above the band; the forecast plan lands every segment inside it.
+          </span></span></h2>
+        <p class="sub" id="days-sub"></p></div>
+      </div>
+      <div class="canvas"><canvas id="c-days" role="img" aria-label="Days of supply at end of quarter by plan"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>What each plan costs
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Total cost over the quarter, split into <b>holding</b> (cars on the lot), <b>transfers</b> (cars borrowed from sister stores) and <b>lost gross profit</b> (customers who bought elsewhere).
+            Running a thin lot looks cheap on holding cost, but the lost sales cost much more. Updates with the assumptions below.
+          </span></span></h2>
+        <p class="sub">Next 3 months · holding + transfers + lost gross profit</p></div>
+      </div>
+      <div class="canvas" style="height:200px"><canvas id="c-cost" role="img" aria-label="Cost by plan and component"></canvas></div>
+      <p class="insight" id="i-cost"></p>
+    </div>
+  </section>
+
+  <section class="card full">
+    <div class="card-head"><div>
+      <h2>Test the assumptions
+        <span class="info" tabindex="0" aria-label="About the assumptions">i<span class="tip" role="tooltip">
+          The cost comparison depends on two numbers that vary by dealership. Move the sliders to see whether the forecast plan still wins.
+          Orders and stock levels do not change; only the dollar comparison does.
+        </span></span></h2>
+      <p class="sub">Defaults come from the notebook</p></div>
+    </div>
+    <div class="whatif">
+      <label>Holding cost per car per month (floorplan interest + depreciation)
+        <span class="row"><input type="range" id="w-hold" min="100" max="900" step="25"><output id="o-hold"></output></span></label>
+      <label>Share of short customers who buy elsewhere (the rest wait for a borrowed car)
+        <span class="row"><input type="range" id="w-lost" min="0" max="100" step="5"><output id="o-lost"></output></span></label>
+    </div>
+    <p class="insight" id="i-whatif"></p>
+  </section>
+
+  <section class="card full">
+    <div class="card-head"><div>
+      <h2>Month by month
+        <span class="info" tabindex="0" aria-label="About this table">i<span class="tip" role="tooltip">
+          Stock flow for one segment under both plans: stock at the start of the month, cars ordered, expected sales, shortages (transfers + lost sales) and stock at the end.
+        </span></span></h2>
+      <p class="sub" id="flow-sub"></p></div>
+      <label class="card-control">Segment <select id="f-seg"></select></label>
+    </div>
+    <div class="table-wrap"><table id="t-flow"></table></div>
+  </section>
+
+  <footer>
+    Part of the <a href="https://github.com/diegosilva-design/car-dealership-data-portfolio/tree/main/02-demand-forecast">Demand forecast</a> case · Process & data analysis portfolio.
+  </footer>
+</main>
+
+<script src="../../data/inventory_plan.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const num = (x, d = 0) => (x == null || isNaN(x)) ? '—' : x.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+  const usd = (x) => (x == null || isNaN(x)) ? '—' : (x < 0 ? '-' : '') + '$' + num(Math.abs(x) / 1000, 1) + 'K';
+  function parseCSV(txt) {
+    const [head, ...rows] = txt.trim().split(/\r?\n/);
+    const cols = head.split(',').map(s => s.trim());
+    return rows.map(r => { const v = r.split(',').map(s => s.trim()); const o = {}; cols.forEach((c, i) => o[c] = v[i] === '' || isNaN(v[i]) ? v[i] : +v[i]); return o; });
+  }
+  const A = window.PLAN_ASSUMPTIONS;
+  const plan = parseCSV(window.PLAN_CSV);
+  const SEGMENTS = ['Sedan / compact', 'Compact SUV', 'Midsize SUV', 'Pickup', 'Hybrid / EV'];
+  const PLANS = ['Current rule', 'Forecast plan'];
+  const months = [...new Set(plan.map(r => r.month))].sort();
+  const monthName = (m, withYear = true) => new Date(m + '-15T12:00').toLocaleDateString('en-US', withYear ? { month: 'short', year: 'numeric' } : { month: 'short' });
+  const rowsOf = (p, s) => plan.filter(r => r.plan === p && (!s || r.segment === s));
+  const sum = (rows, k) => rows.reduce((t, r) => t + (+r[k] || 0), 0);
+  const quarter = `${monthName(months[0])} – ${monthName(months[months.length - 1])}`;
+  $('header-sub').textContent = `Redwood Auto Group · Recommended orders for ${quarter} vs. the current ordering rule`;
+  SEGMENTS.forEach(s => $('f-seg').add(new Option(s, s)));
+  $('f-seg').value = 'Hybrid / EV';
+
+  // What-if inputs (defaults from the notebook)
+  const w = { hold: A.holdingCost, lost: A.lostShare };
+  $('w-hold').value = w.hold; $('w-lost').value = Math.round(w.lost * 100);
+
+  // Costs under the current assumptions. Shortage = transfers + lost sales in the notebook run; avg stock = holding_cost / holdingCost.
+  function costs(p, s) {
+    const rows = rowsOf(p, s);
+    const short = sum(rows, 'transfers') + sum(rows, 'lost_sales');
+    const stockMonths = sum(rows, 'holding_cost') / A.holdingCost;
+    const hold = stockMonths * w.hold, transfers = short * (1 - w.lost) * A.transferCost, lost = short * w.lost * A.grossPerCar;
+    return { hold, transfers, lost, total: hold + transfers + lost, short, lostCars: short * w.lost };
+  }
+  const endDays = (p, s) => rowsOf(p, s).find(r => r.month === months[months.length - 1]).days_supply;
+  const status = d => d < 30 ? ['critical', '✗ Short'] : d < 45 ? ['warning', '● Low'] : d <= 60 ? ['good', '✓ Healthy'] : d <= 90 ? ['warning', '● High'] : ['critical', '✗ Overstock'];
+
+  const charts = {};
+  function draw(id, config) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), config); }
+  const legend = () => ({ display: true, position: 'top', align: 'end', labels: { color: css('--text-secondary'), usePointStyle: true, boxWidth: 8, boxHeight: 8, font: { size: 12 } } });
+
+  // Sortable recommendation table
+  const sortState = { key: 'segment', dir: 1 };
+  function renderRec() {
+    const items = SEGMENTS.map(s => {
+      const fp = rowsOf('Forecast plan', s), cr = rowsOf('Current rule', s);
+      const planOrders = sum(fp, 'order'), ruleOrders = sum(cr, 'order');
+      const diff = planOrders - ruleOrders;
+      const startDays = fp[0].opening / (sum(fp, 'expected_sales') / fp.length) * 30;
+      const action = diff > 2 ? `Order ${num(diff)} more` : diff < -2 ? `Order ${num(-diff)} fewer` : 'Keep as is';
+      return { s, stock: fp[0].opening, startDays, o: fp.map(r => r.order), planOrders, ruleOrders, diff, planEnd: endDays('Forecast plan', s), ruleEnd: endDays('Current rule', s), action };
+    });
+    const cols = [
+      { key: 'segment', label: 'Segment', text: true, val: i => i.s, fmt: i => i.s },
+      { key: 'stock', label: 'In stock now', val: i => i.stock, fmt: i => num(i.stock) },
+      { key: 'startDays', label: 'Days now', val: i => i.startDays, fmt: i => `<span class="status ${status(i.startDays)[0]}">${num(i.startDays)}</span>` },
+      ...months.map((m, j) => ({ key: 'o' + j, label: `Order ${monthName(m, false)}`, val: i => i.o[j], fmt: i => num(i.o[j]) })),
+      { key: 'planOrders', label: 'Plan total', val: i => i.planOrders, fmt: i => `<strong>${num(i.planOrders)}</strong>` },
+      { key: 'ruleOrders', label: 'Current rule', val: i => i.ruleOrders, fmt: i => num(i.ruleOrders) },
+      { key: 'planEnd', label: 'End days (plan)', val: i => i.planEnd, fmt: i => `<span class="status ${status(i.planEnd)[0]}">${status(i.planEnd)[1].split(' ')[0]} ${num(i.planEnd)}</span>` },
+      { key: 'ruleEnd', label: 'End days (rule)', val: i => i.ruleEnd, fmt: i => `<span class="status ${status(i.ruleEnd)[0]}">${status(i.ruleEnd)[1].split(' ')[0]} ${num(i.ruleEnd)}</span>` },
+      { key: 'action', label: 'Action', text: true, val: i => i.diff, fmt: i => `<span class="action">${i.action}</span>` },
+    ];
+    const col = cols.find(c => c.key === sortState.key);
+    const sorted = [...items].sort((a, b) => { const va = col.val(a), vb = col.val(b); return sortState.dir * (typeof va === 'string' ? va.localeCompare(vb) : va - vb); });
+    const tot = { s: 'Total', stock: sum(items, 'stock'), planOrders: sum(items, 'planOrders'), ruleOrders: sum(items, 'ruleOrders'), o: months.map((_, j) => items.reduce((t, i) => t + i.o[j], 0)) };
+    $('t-rec').innerHTML = `<thead><tr>${cols.map(c => { const a = c.key === sortState.key; return `<th aria-sort="${a ? (sortState.dir > 0 ? 'ascending' : 'descending') : 'none'}"><button type="button" class="sort" data-key="${c.key}">${c.label}<span class="arrow">${a ? (sortState.dir > 0 ? '▲' : '▼') : '↕'}</span></button></th>`; }).join('')}</tr></thead><tbody>` +
+      sorted.map(i => `<tr>${cols.map(c => `<td>${c.fmt(i)}</td>`).join('')}</tr>`).join('') +
+      `<tr class="total"><td>Total</td><td>${num(tot.stock)}</td><td></td>${tot.o.map(v => `<td>${num(v)}</td>`).join('')}<td>${num(tot.planOrders)}</td><td>${num(tot.ruleOrders)}</td><td></td><td></td><td></td></tr></tbody>`;
+    $('t-rec').querySelectorAll('button.sort').forEach(b => b.addEventListener('click', () => {
+      if (sortState.key === b.dataset.key) sortState.dir *= -1; else { sortState.key = b.dataset.key; sortState.dir = cols.find(c => c.key === b.dataset.key).text && b.dataset.key === 'segment' ? 1 : -1; }
+      renderRec(); $('t-rec').querySelector(`button[data-key="${sortState.key}"]`).focus();
+    }));
+    $('rec-sub').textContent = `${quarter} · forecast plan orders by month, compared with the current rule`;
+  }
+
+  function renderCosts() {
+    $('o-hold').textContent = '$' + num(w.hold); $('o-lost').textContent = Math.round(w.lost * 100) + '%';
+    const cr = costs('Current rule'), fp = costs('Forecast plan');
+    const saving = cr.total - fp.total;
+    const ordersR = sum(rowsOf('Current rule'), 'order'), ordersP = sum(rowsOf('Forecast plan'), 'order');
+    $('kpis').innerHTML = [
+      ['Quarter cost · forecast plan', usd(fp.total), `Current rule: ${usd(cr.total)}`, saving >= 0 ? `<span class="up-good">▼ ${usd(saving)} saved</span>` : `<span class="down-bad">▲ ${usd(-saving)} more</span>`],
+      ['Lost sales avoided', num(cr.lostCars - fp.lostCars), `${num(cr.lostCars)} under the current rule`, `<span class="up-good">${usd(cr.lost - fp.lost)} gross profit kept</span>`],
+      ['Cars to order', num(ordersP), `Current rule: ${num(ordersR)}`, `<span class="muted">More stock where demand is growing</span>`],
+      ['Segments in the healthy range', `${SEGMENTS.filter(s => { const d = endDays('Forecast plan', s); return d >= 45 && d <= 60; }).length} of ${SEGMENTS.length}`, `Current rule: ${SEGMENTS.filter(s => { const d = endDays('Current rule', s); return d >= 45 && d <= 60; }).length} of ${SEGMENTS.length}`, `<span class="muted">End of ${monthName(months[months.length - 1])}</span>`],
+    ].map(([t, v, a, b]) => `<div class="card kpi"><div class="title">${t}</div><div class="value small">${v}</div><dl><dt>${a}</dt><dd></dd><dt>${b}</dt><dd></dd></dl></div>`).join('');
+
+    draw('c-cost', {
+      type: 'bar',
+      data: { labels: PLANS, datasets: [
+        { label: 'Holding', data: PLANS.map(p => costs(p).hold), backgroundColor: css('--c-hold'), borderRadius: 2, pointStyle: 'rect' },
+        { label: 'Transfers', data: PLANS.map(p => costs(p).transfers), backgroundColor: css('--c-transfer'), borderRadius: 2, pointStyle: 'rect' },
+        { label: 'Lost gross profit', data: PLANS.map(p => costs(p).lost), backgroundColor: css('--c-lost'), borderRadius: 2, pointStyle: 'rect' },
+      ] },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false,
+        datasets: { bar: { borderColor: css('--surface'), borderWidth: { right: 2 }, barThickness: 26 } },
+        plugins: { legend: legend(), tooltip: { callbacks: { label: x => `${x.dataset.label}: ${usd(x.raw)}`, footer: items => `Total: ${usd(costs(items[0].label).total)}` } } },
+        scales: { x: { stacked: true, grid: { color: css('--grid') }, border: { color: css('--axis') }, ticks: { color: css('--muted'), callback: v => usd(v) } },
+                  y: { stacked: true, grid: { display: false }, border: { color: css('--axis') }, ticks: { color: css('--text-secondary') } } } },
+    });
+    $('i-cost').textContent = `The current rule spends ${usd(cr.hold)} on holding but loses ${usd(cr.lost)} in gross profit from ${num(cr.lostCars)} customers who found no car. The forecast plan holds more stock (${usd(fp.hold)}) and loses none.`;
+    // Break-even: lost share at which both plans cost the same (holding fixed at the slider value)
+    const perLost = (p) => { const c = costs(p); return { base: c.hold + c.short * A.transferCost, slope: c.short * (A.grossPerCar - A.transferCost) }; };
+    const r = perLost('Current rule'), f = perLost('Forecast plan');
+    const be = (f.base - r.base) / ((r.slope - f.slope) || 1);
+    $('i-whatif').textContent = saving >= 0
+      ? `With these assumptions the forecast plan saves ${usd(saving)} this quarter (about ${usd(saving * 4)} a year). It stays cheaper as long as more than ${num(Math.max(0, be) * 100)}% of short customers would buy elsewhere.`
+      : `With these assumptions the current rule is ${usd(-saving)} cheaper: holding stock costs more than the sales it protects. The forecast plan wins once more than ${num(Math.max(0, be) * 100)}% of short customers would buy elsewhere.`;
+  }
+
+  function renderDays() {
+    $('days-sub').textContent = `End of ${monthName(months[months.length - 1])} · healthy range 45–60 days`;
+    const bandPlugin = { id: 'band', beforeDatasetsDraw(chart) {
+      const { ctx, chartArea: a, scales: { x } } = chart;
+      ctx.save(); ctx.fillStyle = css('--good'); ctx.globalAlpha = 0.12;
+      ctx.fillRect(x.getPixelForValue(45), a.top, x.getPixelForValue(60) - x.getPixelForValue(45), a.bottom - a.top); ctx.restore();
+    } };
+    draw('c-days', {
+      type: 'bar', plugins: [bandPlugin],
+      data: { labels: SEGMENTS, datasets: [
+        { label: 'Current rule', data: SEGMENTS.map(s => Math.min(endDays('Current rule', s), 150)), backgroundColor: css('--reference'), borderRadius: 4, maxBarThickness: 16, pointStyle: 'rect' },
+        { label: 'Forecast plan', data: SEGMENTS.map(s => endDays('Forecast plan', s)), backgroundColor: css('--plan'), borderRadius: 4, maxBarThickness: 16, pointStyle: 'rect' },
+      ] },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false, axis: 'y' },
+        plugins: { legend: legend(), tooltip: { callbacks: { label: x => `${x.dataset.label}: ${num(endDays(x.dataset.label, SEGMENTS[x.dataIndex]))} days · ${status(endDays(x.dataset.label, SEGMENTS[x.dataIndex]))[1]}` } } },
+        scales: { x: { min: 0, max: 150, grid: { color: css('--grid') }, border: { color: css('--axis') }, ticks: { color: css('--muted'), callback: v => v + ' d' } },
+                  y: { grid: { display: false }, border: { color: css('--axis') }, ticks: { color: css('--text-secondary') } } } },
+    });
+  }
+
+  function renderFlow() {
+    const s = $('f-seg').value;
+    $('flow-sub').textContent = `${s} · cars, by month`;
+    const head = `<thead><tr><th>Plan</th><th>Month</th><th>Start stock</th><th>Ordered</th><th>Expected sales</th><th>Short (borrowed + lost)</th><th>End stock</th><th>Days of supply</th></tr></thead>`;
+    $('t-flow').innerHTML = head + '<tbody>' + PLANS.map(p => rowsOf(p, s).map((r, j) => {
+      const short = (+r.transfers || 0) + (+r.lost_sales || 0); const st = status(r.days_supply);
+      return `<tr><td>${j === 0 ? p : ''}</td><td>${monthName(r.month)}</td><td>${num(r.opening)}</td><td>${num(r.order)}</td><td>${num(r.expected_sales, 1)}</td>
+        <td class="${short > 0 ? 'status critical' : ''}">${short > 0 ? num(short, 1) : '—'}</td><td>${num(r.closing)}</td><td><span class="status ${st[0]}">${num(r.days_supply)}</span></td></tr>`;
+    }).join('')).join('') + '</tbody>';
+  }
+
+  function render() { renderRec(); renderCosts(); renderDays(); renderFlow(); }
+  $('w-hold').addEventListener('input', e => { w.hold = +e.target.value; renderCosts(); });
+  $('w-lost').addEventListener('input', e => { w.lost = +e.target.value / 100; renderCosts(); });
+  $('f-seg').addEventListener('change', renderFlow);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+  render();
+})();
+</script>
+</body>
+</html>

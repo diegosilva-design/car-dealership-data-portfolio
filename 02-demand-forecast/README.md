@@ -1,12 +1,12 @@
 # Case 02 · Demand forecast
 
-**Is the dealership ordering the right cars? Forecasting demand by segment to plan inventory**
+**Is the dealership ordering the right cars? Forecasting demand by segment and turning it into an order plan**
 
 | | |
 |---|---|
 | **Company** | Redwood Auto Group (fictional) · Dallas–Fort Worth, Texas · ~500 leads per month |
 | **Problem** | Stock is ordered from last year's sales (+5%). Sedans pile up on the lot while hybrids sell out and have to be borrowed from sister stores. |
-| **My role** | Trend and seasonality analysis, forecasting models, backtesting, and turning the forecast into planning numbers |
+| **My role** | Trend and seasonality analysis, forecasting models, backtesting, and an inventory plan with a cost comparison |
 | **Tools** | Python (pandas, statsmodels, matplotlib) · Jupyter · Chart.js dashboard |
 
 ## Executive summary
@@ -27,13 +27,24 @@
 | Midsize SUV | 174 | 174 | — |
 | Sedan / compact | **363** | 386 | **−6%** |
 
-**Recommendation.** Plan hybrid stock from the forecast, not from last year: the current rule would miss about 50 hybrid customers this quarter. Slow sedan orders until stock is back in the healthy range.
+**From forecast to orders.** Both ordering approaches were run against the same expected demand for Oct – Dec 2026, starting from today's stock:
+
+| | Current rule | Forecast plan |
+|---|---|---|
+| Cars ordered | 109 | 201 |
+| Customers who find no car | 50 (25 borrowed from sister stores, 25 lost) | 0 |
+| Segments ending in the healthy 45–60 days | 0 of 5 | **5 of 5** |
+| Sedan supply at the end of December | 108 days | 54 days |
+| Quarter cost (holding + transfers + lost gross profit) | ~$151K | **~$113K** |
+
+**Recommendation.** Order from the forecast, not from last year: about **$38K less cost per quarter (~$150K a year)**, no lost customers, and sedan orders cut from 35 to 12. The conclusion holds as long as more than about 21% of customers who find no car would buy elsewhere; the Inventory plan page lets you test that and the holding cost.
 
 ## Walk through the case
 
 1. 📓 [Forecast notebook](demand_forecast.ipynb): the full analysis, with code, charts and explanations
 2. 📈 [Demand & Mix page](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/demand.html): trends, seasonality, affordability, demand by area and inventory health
 3. 🔮 [Forecast page](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/forecast.html): next-quarter forecast by segment, accuracy vs the current rule
+4. 📦 [Inventory plan page](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/plan.html): recommended orders by month, where each plan leaves the lot, cost comparison and a what-if panel
 
 ## Method in brief
 
@@ -45,6 +56,7 @@
 | Champion per segment | Keep the most accurate model for each segment. Where the simple rule wins (Midsize SUV), keep it |
 | Likely range | 10th–90th percentile of the champion's backtest errors: honest, model-agnostic uncertainty |
 | Leads → sales | Store-wide pilot conversion (10.7%); per-segment rates over 3 months are too noisy |
+| Order plan | End each month with 50 days of expected sales + a safety buffer for the high end of the range. Shortages: half borrowed ($400 each), half lost ($2,978 gross profit each). Holding: $400 per car per month |
 
 ## Run it yourself
 
@@ -56,6 +68,6 @@ py -m pip install -r requirements.txt
 py -m jupyter nbconvert --to notebook --execute --inplace demand_forecast.ipynb
 ```
 
-Re-running the notebook rewrites `data/forecast.csv`, `data/backtest.csv` and `data/forecast.js`, which the Forecast page reads. If the data is regenerated with `data/generate_data.ps1`, re-run the notebook afterwards.
+Re-running the notebook rewrites `data/forecast.csv`, `data/backtest.csv`, `data/forecast.js`, `data/inventory_plan.csv` and `data/inventory_plan.js`, which the Forecast and Inventory plan pages read. If the data is regenerated with `data/generate_data.ps1`, re-run the notebook afterwards.
 
 > All data is synthetic, with trends built in on purpose. The method, not the numbers, is the point.

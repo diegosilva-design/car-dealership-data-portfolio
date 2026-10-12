@@ -22,8 +22,9 @@ Test locally (or on the staging preview) before merging into `main`. Merging pub
 - [ ] Inventory month menu updates the chart, table and note
 
 **Forecast**
-- [ ] If data changed: notebook re-run (`py -m jupyter nbconvert --to notebook --execute --inplace 02-demand-forecast/demand_forecast.ipynb`) and `forecast.csv`, `backtest.csv`, `forecast.js` committed
+- [ ] If data changed: notebook re-run (`py -m jupyter nbconvert --to notebook --execute --inplace 02-demand-forecast/demand_forecast.ipynb`) and `forecast.*`, `backtest.csv`, `inventory_plan.*` committed
 - [ ] Forecast page loads with no errors; segment menu updates the chart and note
+- [ ] Inventory plan page: table sorts, sliders update the costs and notes, segment menu updates the monthly table
 
 **Form**
 - [ ] Submits in demo mode and shows the confirmation with an assigned advisor
