@@ -35,6 +35,7 @@ Method details and an express-diagnosis questionnaire: [docs/methodology.md](doc
 - 🔮 [Demand forecast: next quarter by segment](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/forecast.html)
 - 📦 [Inventory plan: recommended orders and cost comparison](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/plan.html)
 - 📓 [Forecast notebook (Python)](02-demand-forecast/demand_forecast.ipynb)
+- 📘 [Project Book: how the forecast model works](02-demand-forecast/PROJECT-BOOK.md) ([PDF](02-demand-forecast/project-book.pdf))
 
 > The demos run live on GitHub Pages with synthetic data; the form runs in demo mode.
 
@@ -56,6 +57,7 @@ Method details and an express-diagnosis questionnaire: [docs/methodology.md](doc
 │   └── 5-impact.md           results and economic value
 └── 02-demand-forecast/
     ├── README.md             executive summary
+    ├── PROJECT-BOOK.md       how the model works (also as PDF and Word)
     └── demand_forecast.ipynb trends, 4 models, backtest, Oct–Dec 2026 forecast, order plan
 ```
 

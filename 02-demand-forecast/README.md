@@ -41,6 +41,7 @@
 
 ## Walk through the case
 
+0. 📘 [Project Book](PROJECT-BOOK.md): how the model works, in plain language, with the full project context ([PDF](project-book.pdf) · [Word](project-book.docx))
 1. 📓 [Forecast notebook](demand_forecast.ipynb): the full analysis, with code, charts and explanations
 2. 📈 [Demand & Mix page](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/demand.html): trends, seasonality, affordability, demand by area and inventory health
 3. 🔮 [Forecast page](https://diegosilva-design.github.io/car-dealership-data-portfolio/01-lead-to-sale/4-measurement/forecast.html): next-quarter forecast by segment, accuracy vs the current rule
