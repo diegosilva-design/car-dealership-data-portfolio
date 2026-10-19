@@ -19,16 +19,16 @@
 **Formula:** `leads per month × conversion uplift × gross profit per vehicle`
 
 ```
-504 leads × (10.65% − 6.79%) × $2,800  ≈  19.5 sales  ≈  $54.6K additional gross profit per month
+504 leads × (10.65% − 6.79%) × $2,980  ≈  19.5 sales  ≈  $58.0K additional gross profit per month
 ```
 
 The full pilot result is **not attributed to the new workflow alone**. Seasonality may play a part, teams try harder when they know they're being measured (the pilot effect), and the market can shift. That's why three scenarios are presented:
 
 | Scenario | % of uplift attributed to the workflow | Extra sales per month | Extra gross profit per month | Extra gross profit per year |
 |---|---|---|---|---|
-| Conservative | 25% | ~4.9 | ~$13.6K | ~$164K |
-| **Base** | **50%** | **~9.7** | **~$27.3K** | **~$327K** |
-| Optimistic | 100% | ~19.5 | ~$54.6K | ~$655K |
+| Conservative | 25% | ~4.9 | ~$14.5K | ~$174K |
+| **Base** | **50%** | **~9.7** | **~$29.0K** | **~$348K** |
+| Optimistic | 100% | ~19.5 | ~$58.0K | ~$696K |
 
 ## 5.3 Cost of the solution
 

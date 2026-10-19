@@ -4,7 +4,7 @@
  * Does 4 things, with no servers or licenses:
  *  1. doPost     → receives the form, saves the lead and ASSIGNS it (round-robin) to an active salesperson.
  *  2. notify     → emails the salesperson as soon as the lead comes in.
- *  3. checkSLA   → every 15 min: lead not contacted > 1 h → reminder to the salesperson; > 4 h → alert to the sales manager.
+ *  3. checkSLA   → every 15 min: lead not contacted > 1 business hour → reminder to the salesperson; > 4 → alert to the sales manager.
  *  4. onEdit     → when the salesperson changes the "status", records the contact time and moves the funnel forward.
  *  +  doGet      → serves the data WITHOUT personal information to feed the dashboard.
  *
@@ -17,6 +17,7 @@ const CONFIG = {
   SALES_MANAGER_EMAIL: 'sales.manager@example.com',
   SLA_REMINDER_HOURS: 1,
   SLA_ESCALATION_HOURS: 4,
+  BUSINESS_HOURS: { open: 9, close: 20, days: [1, 2, 3, 4, 5, 6] },   // SLA clock runs Mon–Sat, 9 am – 8 pm (script time zone)
   ESTIMATED_GROSS: 0.095,                  // average gross profit (vehicle + F&I) as a share of price, for the dashboard
 };
 
@@ -27,10 +28,19 @@ const PRICES = {
   'Honda CR-V': 31000, 'Hyundai Elantra': 22500, 'Hyundai Tucson': 29900,
   'Ford F-150': 41000, 'Ford Explorer': 41500, 'Kia Sportage': 29500,
   'Nissan Rogue': 30500, 'Jeep Grand Cherokee': 39000,
+  'Toyota RAV4 Hybrid': 33500, 'Toyota Camry Hybrid': 29500, 'Hyundai Ioniq 5': 43000,
+};
+
+// Segment of each model (same grouping as data/leads.csv)
+const SEGMENTS = {
+  'Toyota Corolla': 'Sedan / compact', 'Honda Civic': 'Sedan / compact', 'Hyundai Elantra': 'Sedan / compact', 'Chevrolet Trax': 'Sedan / compact',
+  'Toyota RAV4': 'Compact SUV', 'Honda CR-V': 'Compact SUV', 'Chevrolet Equinox': 'Compact SUV', 'Hyundai Tucson': 'Compact SUV', 'Kia Sportage': 'Compact SUV', 'Nissan Rogue': 'Compact SUV',
+  'Ford Explorer': 'Midsize SUV', 'Jeep Grand Cherokee': 'Midsize SUV', 'Ford F-150': 'Pickup', 'Toyota Tacoma': 'Pickup',
+  'Toyota RAV4 Hybrid': 'Hybrid / EV', 'Toyota Camry Hybrid': 'Hybrid / EV', 'Hyundai Ioniq 5': 'Hybrid / EV',
 };
 
 // Public columns (same as data/leads.csv) + internal columns holding personal data.
-const PUBLIC_COLS = ['lead_id', 'lead_date', 'month', 'period', 'channel', 'brand', 'model', 'price_usd', 'city',
+const PUBLIC_COLS = ['lead_id', 'lead_date', 'month', 'period', 'channel', 'brand', 'model', 'segment', 'price_usd', 'city',
   'salesperson', 'contacted', 'hours_to_first_contact', 'test_drive', 'quote', 'sale', 'sale_date', 'gross_profit_usd'];
 const INTERNAL_COLS = ['status', 'contact_date', 'alert', 'name', 'phone', 'email', 'payment', 'trade_in', 'comment'];
 const COLUMNS = PUBLIC_COLS.concat(INTERNAL_COLS);
@@ -64,6 +74,7 @@ function doPost(e) {
   lock.waitLock(10000);   // prevents two simultaneous leads from getting the same salesperson
   try {
     const d = JSON.parse(e.postData.contents);
+    if (d.website) return json({ ok: true, lead_id: '', salesperson: '' });   // honeypot: only bots fill the hidden field
     const missing = ['name', 'phone', 'email', 'model', 'channel'].filter(k => !d[k]);
     if (missing.length) return json({ ok: false, error: 'Missing fields: ' + missing.join(', ') });
 
@@ -77,8 +88,8 @@ function doPost(e) {
 
     const row = {
       lead_id: id, lead_date: Utilities.formatDate(now, tz, 'yyyy-MM-dd HH:mm'), month: Utilities.formatDate(now, tz, 'yyyy-MM'),
-      period: 'after', channel: d.channel, brand: brand, model: d.model.substring(brand.length + 1) || d.model,
-      price_usd: PRICES[d.model] || '', city: d.city || '', salesperson: salesperson.name,
+      period: 'pilot', channel: d.channel, brand: brand, model: d.model.substring(brand.length + 1) || d.model,
+      segment: SEGMENTS[d.model] || '', price_usd: PRICES[d.model] || '', city: d.city || '', salesperson: salesperson.name,
       contacted: walkIn ? 'yes' : 'no', hours_to_first_contact: walkIn ? 0.1 : '',
       test_drive: 'no', quote: 'no', sale: 'no', sale_date: '', gross_profit_usd: '',
       status: walkIn ? 'Contacted' : 'New', contact_date: '', alert: 0,
@@ -118,6 +129,23 @@ function notify(salesperson, r) {
   });
 }
 
+/** Hours between two dates that fall inside CONFIG.BUSINESS_HOURS (so a lead sent at 9 pm is not overdue at 1 am). */
+function businessHoursBetween(from, to) {
+  const { open, close, days } = CONFIG.BUSINESS_HOURS;
+  let total = 0;
+  const day = new Date(from); day.setHours(0, 0, 0, 0);
+  while (day < to) {
+    if (days.includes(day.getDay())) {
+      const start = new Date(day); start.setHours(open, 0, 0, 0);
+      const end = new Date(day); end.setHours(close, 0, 0, 0);
+      const s = Math.max(start, from), en = Math.min(end, to);
+      if (en > s) total += (en - s) / 36e5;
+    }
+    day.setDate(day.getDate() + 1);
+  }
+  return total;
+}
+
 /** 3. Runs every 15 min: reminder and escalation for unattended leads. */
 function checkSLA() {
   const sheet = SpreadsheetApp.getActive().getSheetByName(CONFIG.LEADS_SHEET);
@@ -131,7 +159,7 @@ function checkSLA() {
   for (let i = 1; i < data.length; i++) {
     const r = data[i];
     if (r[col('status')] !== 'New') continue;
-    const hours = (now - new Date(String(r[col('lead_date')]).replace(' ', 'T'))) / 36e5;
+    const hours = businessHoursBetween(new Date(String(r[col('lead_date')]).replace(' ', 'T')), now);
     const alert = Number(r[col('alert')] || 0);
     if (hours >= CONFIG.SLA_ESCALATION_HOURS && alert < 2) {
       escalated.push(`${r[col('lead_id')]} · ${r[col('salesperson')]} · ${hours.toFixed(1)} h without contact · ${r[col('channel')]}`);

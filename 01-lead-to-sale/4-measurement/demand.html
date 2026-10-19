@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demand and Mix</title>
+<link rel="stylesheet" href="report.css">
+<style>
+  :root {
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;   /* segments, fixed order */
+    --neutral: #f0efec; --div-up: #2a78d6; --div-down: #e34948;                  /* diverging scale */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --neutral: #383835; --div-up: #3987e5; --div-down: #e66767; }
+  }
+  :root[data-theme="dark"] { --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --neutral: #383835; --div-up: #3987e5; --div-down: #e66767; }
+  .seg-kpi .title { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+  .heat td { text-align: center; font-size: 13px; padding: 7px 4px; border: 2px solid var(--surface); border-radius: 6px; }
+  .heat td:first-child, .area td:first-child { text-align: left; white-space: nowrap; }
+  .heat th { text-align: center; }
+  .area td { text-align: center; }
+  .scale { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); margin-top: 10px; flex-wrap: wrap; }
+  .scale .bar { width: 160px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--div-down), var(--neutral), var(--div-up)); }
+  .toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .toggle button { font: inherit; font-size: 14px; padding: 6px 12px; border: 0; background: var(--surface); color: var(--text-secondary); cursor: pointer; }
+  .toggle button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .full { margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="tabs" aria-label="Report pages">
+    <a href="dashboard.html">Lead → Sale</a>
+    <a href="demand.html" aria-current="page">Demand &amp; Mix</a>
+    <a href="forecast.html">Forecast</a>
+    <a href="plan.html">Inventory plan</a>
+  </nav>
+  <header>
+    <h1>Demand &amp; Mix</h1>
+    <p>Redwood Auto Group · What customers want, how it is changing, and whether the lot is ready for it</p>
+    <p class="note">Synthetic data generated for this portfolio (Jan 2024 – Sep 2026). The company is fictional.</p>
+  </header>
+
+  <div class="filters">
+    <div class="field"><span>Measure demand by</span>
+      <div class="toggle" role="group" aria-label="Measure">
+        <button type="button" data-measure="leads" aria-pressed="true">Leads</button>
+        <button type="button" data-measure="sales" aria-pressed="false">Sales</button>
+      </div>
+    </div>
+    <label>Area <select id="f-city"><option value="">All DFW</option></select></label>
+  </div>
+
+  <div class="section-title">Segment mix · last 12 months
+    <span class="info" tabindex="0" aria-label="How to read the segment cards">i<span class="tip" role="tooltip">
+      Each card shows a segment's share of demand over the <b>last 12 months</b> (L12M) and how it changed against the <b>12 months before</b>.
+      <b>Leads</b> measure customer interest; <b>sales</b> measure what was actually sold, which also depends on stock and on the sales team (the pilot from Jul 2026 raised sales in every segment).
+    </span></span>
+  </div>
+  <section class="kpis" id="seg-kpis"></section>
+
+  <section class="grid2">
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>Segment mix over time
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Each segment's share of all leads (or sales) per quarter. A line going up means customers are moving toward that segment, regardless of how busy the store was overall.
+            Hover to see every segment for a quarter.
+          </span></span></h2>
+        <p class="sub" id="mix-sub"></p></div>
+      </div>
+      <div class="canvas"><canvas id="c-mix" role="img" aria-label="Segment share by quarter"></canvas></div>
+      <p class="insight" id="i-mix"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>Seasonality
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            How busy each month is for each segment, compared with that segment's average month (<b>100 = average</b>).
+            Blue cells are above average, red cells below. Long-term growth or decline is removed first (each month is compared with its 12-month moving average), so a fast-growing segment does not look "busier" just because it is growing. Hover a cell for the details.
+          </span></span></h2>
+        <p class="sub" id="heat-sub"></p></div>
+      </div>
+      <div class="table-wrap"><table class="heat" id="t-heat"></table></div>
+      <div class="scale" aria-hidden="true"><span>Below average</span><span class="bar"></span><span>Above average</span></div>
+      <p class="insight" id="i-heat"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>Affordability
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Share of leads that ended in a sale, for vehicles up to $35K and over $35K, by year.
+            When financing gets more expensive, the gap between the two widens: buyers still look at expensive vehicles, but fewer of them close.
+          </span></span></h2>
+        <p class="sub" id="price-sub"></p></div>
+      </div>
+      <div class="canvas"><canvas id="c-price" role="img" aria-label="Conversion by price band and year"></canvas></div>
+      <p class="insight" id="i-price"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div>
+        <h2>Leads as an early signal
+          <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+            Leads and sales for one segment, each as a 3-month rolling average indexed to 100 = the average month before the pilot (Jan 2024 – Jun 2026), so both fit on one scale.
+            Leads show interest first and are not affected by changes in the sales process; sales follow a few weeks later and jump with the Jul 2026 pilot.
+            That is why the forecast (next step) predicts leads, then converts them into sales.
+          </span></span></h2>
+        <p class="sub" id="signal-sub"></p></div>
+        <label class="card-control">Segment <select id="signal-seg"></select></label>
+      </div>
+      <div class="canvas"><canvas id="c-signal" role="img" aria-label="Leads and sales index for one segment"></canvas></div>
+    </div>
+  </section>
+
+  <section class="card full">
+    <div class="card-head"><div>
+      <h2>Demand by area
+        <span class="info" tabindex="0" aria-label="About this table">i<span class="tip" role="tooltip">
+          Each row shows how one area's demand splits across segments over the last 12 months (rows add up to 100%).
+          Blue means the segment is more popular there than across DFW as a whole; red means less. Use it to decide where to advertise each segment. The Area filter does not apply to this table.
+        </span></span></h2>
+      <p class="sub" id="area-sub"></p></div>
+    </div>
+    <div class="table-wrap"><table class="area" id="t-area"></table></div>
+    <div class="scale" aria-hidden="true"><span>Less popular than DFW average</span><span class="bar"></span><span>More popular</span></div>
+  </section>
+
+  <section class="card full">
+    <div class="card-head"><div>
+      <h2>Inventory health
+        <span class="info" tabindex="0" aria-label="About this chart">i<span class="tip" role="tooltip">
+          <b>Days of supply</b> = cars in stock ÷ average daily sales over the last 3 months. A healthy lot holds <b>45–60 days</b> (shaded band).
+          Below that, customers find nothing to test drive and cars must be borrowed from sister stores (<b>transfers</b>, which cost money); above it, cars sit and lose value.
+          Inventory is store-wide, so the Area filter does not apply.
+        </span></span></h2>
+      <p class="sub" id="inv-sub"></p></div>
+      <label class="card-control">Month <select id="inv-month"></select></label>
+    </div>
+    <div class="grid2" style="margin-top:0">
+      <div class="canvas" style="height:240px"><canvas id="c-inv" role="img" aria-label="Days of supply by segment"></canvas></div>
+      <div class="table-wrap"><table id="t-inv"></table></div>
+    </div>
+    <p class="insight" id="i-inv"></p>
+  </section>
+
+  <footer>
+    Part of the <a href="https://github.com/diegosilva-design/car-dealership-data-portfolio/tree/main/01-lead-to-sale">Lead → Sale</a> case · Process & data analysis portfolio.
+  </footer>
+</main>
+
+<script src="../../data/data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const num = (x, d = 0) => (x == null || isNaN(x)) ? '—' : x.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+  const pct = (x, d = 1) => (x == null || isNaN(x)) ? '—' : (x * 100).toFixed(d) + '%';
+  const signed = (x, d = 1, unit = '') => (x == null || isNaN(x)) ? '—' : `${x > 0 ? '▲' : x < 0 ? '▼' : '±'} ${Math.abs(x).toFixed(d)}${unit}`;
+
+  // ---------- Data ----------
+  function parseCSV(txt) {
+    const [head, ...rows] = txt.trim().split(/\r?\n/);
+    const cols = head.split(',');
+    return rows.map(r => { const v = r.split(','); const o = {}; cols.forEach((c, i) => o[c] = v[i]); return o; });
+  }
+  const leads = parseCSV(window.LEADS_CSV);
+  const inventory = parseCSV(window.INVENTORY_CSV).map(r => ({ ...r, closing_stock: +r.closing_stock, sold: +r.sold, transfers_in: +r.transfers_in, days_supply: r.days_supply === '' ? NaN : +r.days_supply }));
+  leads.forEach(l => { l.saleMonth = l.sale === 'yes' ? l.sale_date.slice(0, 7) : ''; l.price = +l.price_usd; });
+
+  const SEGMENTS = ['Sedan / compact', 'Compact SUV', 'Midsize SUV', 'Pickup', 'Hybrid / EV'];
+  const segColor = () => SEGMENTS.map((_, i) => css(`--s${i + 1}`));
+  const DASH = [[], [6, 4], [2, 3], [8, 3, 2, 3], []];
+  const POINT = ['circle', 'rect', 'triangle', 'rectRot', 'star'];
+
+  const monthAdd = (m, k) => { const [y, mo] = m.split('-').map(Number); const d = new Date(y, mo - 1 + k, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+  const monthName = (m, withYear = true) => new Date(m + '-15T12:00').toLocaleDateString('en-US', withYear ? { month: 'short', year: 'numeric' } : { month: 'short' });
+  const allMonths = [...new Set(leads.map(l => l.month))].sort();
+  const lastMonth = allMonths[allMonths.length - 1];
+  const quarterOf = m => `Q${Math.ceil(+m.slice(5) / 3)} ${m.slice(2, 4)}`;
+  const quarters = [...new Set(allMonths.map(quarterOf))];
+  const cities = [...new Set(leads.map(l => l.city))].sort();
+  cities.forEach(c => $('f-city').add(new Option(c, c)));
+  SEGMENTS.forEach(s => $('signal-seg').add(new Option(s, s)));
+  $('signal-seg').value = 'Compact SUV';
+  const invMonths = [...new Set(inventory.map(r => r.month))].sort();
+  invMonths.slice().reverse().forEach(m => $('inv-month').add(new Option(monthName(m), m)));
+
+  let measure = 'leads';
+  // Month a row counts in: lead month for leads, sale month for sales (sales dated after the last data month are left out)
+  const monthOf = (r) => measure === 'leads' ? r.month : (r.saleMonth && r.saleMonth <= lastMonth ? r.saleMonth : '');
+  const measureName = () => measure === 'leads' ? 'leads' : 'sales';
+
+  // ---------- Charts ----------
+  const charts = {};
+  function draw(id, config) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), config); }
+  const legend = () => ({ display: true, position: 'top', align: 'end', labels: { color: css('--text-secondary'), usePointStyle: true, boxWidth: 8, boxHeight: 8, font: { size: 12 } } });
+  const axisX = () => ({ grid: { display: false }, border: { color: css('--axis') }, ticks: { color: css('--text-secondary') } });
+  const axisY = (fmt, extra = {}) => ({ grid: { color: css('--grid') }, border: { color: css('--axis') }, ticks: { color: css('--muted'), callback: fmt }, beginAtZero: true, ...extra });
+
+  // Diverging background for an index around 100 (±spread saturates)
+  function divColor(index, spread = 30) {
+    if (isNaN(index)) return 'transparent';
+    const t = Math.max(-1, Math.min(1, (index - 100) / spread));
+    const target = t >= 0 ? 'var(--div-up)' : 'var(--div-down)';
+    return `color-mix(in srgb, ${target} ${Math.round(Math.abs(t) * 85)}%, var(--neutral))`;
+  }
+  const inkFor = (index, spread = 30) => Math.abs((index - 100) / spread) > 0.6 ? '#ffffff' : 'var(--text-primary)';
+
+  function render() {
+    const city = $('f-city').value;
+    const rows = leads.filter(l => !city || l.city === city);
+    const where = city || 'All DFW';
+    const colors = segColor();
+
+    // Counts by month × segment for the chosen measure
+    const counts = {};
+    rows.forEach(r => { const m = monthOf(r); if (!m) return; const k = m + '|' + r.segment; counts[k] = (counts[k] || 0) + 1; });
+    const count = (months, seg) => months.reduce((s, m) => s + (counts[m + '|' + seg] || 0), 0);
+    const total = (months) => SEGMENTS.reduce((s, seg) => s + count(months, seg), 0);
+
+    // ----- Segment KPI cards: L12M vs prior 12 months -----
+    const l12 = Array.from({ length: 12 }, (_, i) => monthAdd(lastMonth, -11 + i));
+    const p12 = l12.map(m => monthAdd(m, -12));
+    const tL = total(l12), tP = total(p12);
+    $('seg-kpis').innerHTML = SEGMENTS.map((s, i) => {
+      const share = count(l12, s) / tL, prev = count(p12, s) / tP, growth = count(p12, s) ? count(l12, s) / count(p12, s) - 1 : NaN;
+      const d = (share - prev) * 100;
+      return `<div class="card kpi seg-kpi"><div class="title"><span class="swatch" style="background:${colors[i]}"></span>${s}</div>
+        <div class="value">${pct(share)}</div><dl>
+        <dt>Share vs prior 12M</dt><dd><span class="${d >= 0 ? 'up-good' : 'down-bad'}">${signed(d, 1, ' pp')}</span></dd>
+        <dt>Volume (${measureName()})</dt><dd>${num(count(l12, s))}</dd>
+        <dt>Volume growth</dt><dd>${signed(growth * 100, 0, '%')}</dd></dl></div>`;
+    }).join('');
+
+    // ----- Mix over time (share by quarter) -----
+    const qMonths = q => allMonths.filter(m => quarterOf(m) === q && m <= lastMonth);
+    $('mix-sub').textContent = `${where} · share of ${measureName()} by quarter`;
+    const shares = SEGMENTS.map(s => quarters.map(q => { const ms = qMonths(q), t = total(ms); return t ? count(ms, s) / t : null; }));
+    draw('c-mix', {
+      type: 'line',
+      data: { labels: quarters, datasets: SEGMENTS.map((s, i) => ({ label: s, data: shares[i], borderColor: colors[i], backgroundColor: colors[i], borderWidth: 2, borderDash: DASH[i], pointStyle: POINT[i], pointRadius: 4, tension: 0 })) },
+      options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: legend(), tooltip: { callbacks: { label: c => `${c.dataset.label}: ${pct(c.raw)}` } } },
+        scales: { x: axisX(), y: axisY(v => Math.round(v * 100) + '%') } },
+    });
+    // Compare the first calendar year with the last 12 months (steadier than single quarters)
+    const y1 = allMonths.filter(m => m.startsWith(allMonths[0].slice(0, 4)));
+    const moves = SEGMENTS.map(s => ({ s, d: count(l12, s) / tL - count(y1, s) / total(y1) })).sort((a, b) => a.d - b.d);
+    const gainer = moves[moves.length - 1], loser = moves[0];
+    $('i-mix').textContent = `Compared with ${allMonths[0].slice(0, 4)}, ${gainer.s} gained ${num(gainer.d * 100, 1)} pp of share over the last 12 months and ${loser.s} lost ${num(-loser.d * 100, 1)} pp. Stock planning based on last year's mix keeps falling behind.`;
+
+    // ----- Seasonality heatmap -----
+    // Classical decomposition: each month ÷ its centred 12-month moving average, so growth or decline
+    // in a segment does not show up as "seasonality"; then average the ratios by calendar month.
+    const monthNums = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+    const series = s => allMonths.map(m => counts[m + '|' + s] || 0);
+    const cma = (v, i) => (i < 6 || i + 6 >= v.length) ? NaN
+      : (v.slice(i - 6, i + 6).reduce((a, b) => a + b, 0) + v.slice(i - 5, i + 7).reduce((a, b) => a + b, 0)) / 24;
+    const heat = SEGMENTS.map(s => {
+      const v = series(s), ratios = monthNums.map(() => []);
+      v.forEach((x, i) => { const c = cma(v, i); if (c > 0) ratios[+allMonths[i].slice(5) - 1].push(x / c); });
+      const idx = ratios.map(r => r.length ? r.reduce((a, b) => a + b, 0) / r.length : NaN);
+      const mean = idx.filter(x => !isNaN(x)).reduce((a, b) => a + b, 0) / idx.filter(x => !isNaN(x)).length;
+      return idx.map(x => x / mean * 100);   // rescale so the average month = 100
+    });
+    $('heat-sub').textContent = `${where} · ${measureName()} by month, trend removed (100 = segment's average month)`;
+    $('t-heat').innerHTML = `<thead><tr><th>Segment</th>${monthNums.map(mm => `<th>${monthName('2024-' + mm, false)}</th>`).join('')}</tr></thead><tbody>` +
+      SEGMENTS.map((s, i) => `<tr><td>${s}</td>${heat[i].map((v, j) => `<td style="background:${divColor(v)};color:${inkFor(v)}" title="${s} · ${monthName('2024-' + monthNums[j], false)}: ${num(v)} (100 = average month)">${num(v)}</td>`).join('')}</tr>`).join('') + '</tbody>';
+    const peakOf = i => monthName('2024-' + monthNums[heat[i].indexOf(Math.max(...heat[i].filter(x => !isNaN(x))))], false);
+    const store = monthNums.map((_, j) => SEGMENTS.reduce((s, seg, i) => s + (heat[i][j] || 0), 0) / SEGMENTS.length);
+    const busiest = monthName('2024-' + monthNums[store.indexOf(Math.max(...store))], false), quietest = monthName('2024-' + monthNums[store.indexOf(Math.min(...store))], false);
+    $('i-heat').textContent = `Across segments, ${busiest} is the busiest month and ${quietest} the quietest. Pickups peak in ${peakOf(3)} and hybrids/EVs in ${peakOf(4)}: plan arrivals one to two months ahead of each peak.`;
+
+    // ----- Affordability: conversion by price band and year -----
+    const years = [...new Set(allMonths.map(m => m.slice(0, 4)))];
+    const conv = (ys, hi) => { const g = rows.filter(r => r.month.startsWith(ys) && (hi ? r.price > 35000 : r.price <= 35000)); return g.length ? g.filter(r => r.sale === 'yes').length / g.length : NaN; };
+    const avgPrice = ys => { const g = rows.filter(r => r.month.startsWith(ys)); return g.reduce((s, r) => s + r.price, 0) / (g.length || 1); };
+    $('price-sub').textContent = `${where} · lead → sale conversion · average price of vehicles asked about: ${years.map(y => `${y} $${num(avgPrice(y) / 1000, 1)}K`).join(', ')}`;
+    const lo = years.map(y => conv(y, false)), hi = years.map(y => conv(y, true));
+    draw('c-price', {
+      type: 'bar',
+      data: { labels: years.map(y => y === lastMonth.slice(0, 4) ? `${y} (Jan–${monthName(lastMonth, false)})` : y), datasets: [
+        { label: 'Up to $35K', data: lo, backgroundColor: colors[0], borderRadius: 4, maxBarThickness: 28, pointStyle: 'rect' },
+        { label: 'Over $35K', data: hi, backgroundColor: colors[1], borderRadius: 4, maxBarThickness: 28, pointStyle: 'rect' },
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: legend(), tooltip: { callbacks: { label: c => `${c.dataset.label}: ${pct(c.raw)}` } } },
+        scales: { x: axisX(), y: axisY(v => (v * 100).toFixed(0) + '%') } },
+    });
+    const gap = years.map((y, i) => (lo[i] - hi[i]) * 100);
+    const worst = gap.indexOf(Math.max(...gap));
+    $('i-price').textContent = `The gap was widest in ${years[worst]}: vehicles over $35K closed ${num(gap[worst], 1)} pp less often than cheaper ones. Higher-priced stock needs financing offers, not just more units.`;
+
+    // ----- Leads as an early signal -----
+    const seg = $('signal-seg').value;
+    const months = allMonths;
+    const leadCount = m => rows.filter(r => r.segment === seg && r.month === m).length;
+    const saleCount = m => rows.filter(r => r.segment === seg && r.saleMonth === m).length;
+    const roll = (fn) => months.map((m, i) => i < 2 ? null : (fn(months[i - 2]) + fn(months[i - 1]) + fn(m)) / 3);
+    const preMonths = months.filter(m => leads.some(l => l.month === m && l.period === 'pre-pilot'));
+    const base = (fn) => preMonths.reduce((s, m) => s + fn(m), 0) / preMonths.length;
+    const bL = base(leadCount), bS = base(saleCount);
+    const li = roll(leadCount).map(v => v == null || !bL ? null : v / bL * 100);
+    const si = roll(saleCount).map(v => v == null || !bS ? null : v / bS * 100);
+    $('signal-sub').textContent = `${where} · ${seg} · 3-month rolling average, 100 = average month before the pilot`;
+    draw('c-signal', {
+      type: 'line',
+      data: { labels: months.map(m => monthName(m)), datasets: [
+        { label: 'Leads', data: li, borderColor: colors[0], backgroundColor: colors[0], borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointStyle: 'circle', tension: 0 },
+        { label: 'Sales', data: si, borderColor: colors[1], backgroundColor: colors[1], borderWidth: 2, borderDash: [6, 4], pointRadius: 0, pointHoverRadius: 5, pointStyle: 'rect', tension: 0 },
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: legend(), tooltip: { callbacks: { label: c => `${c.dataset.label}: ${num(c.raw)} (index)` } } },
+        scales: { x: { ...axisX(), ticks: { color: css('--text-secondary'), maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } }, y: axisY(v => v) } },
+    });
+
+    // ----- Demand by area (always all areas, last 12 months) -----
+    $('area-sub').textContent = `Share of each area's ${measureName()} by segment · ${monthName(l12[0])} – ${monthName(lastMonth)}`;
+    const allCounts = {};
+    leads.forEach(r => { const m = monthOf(r); if (!m || m < l12[0]) return; const k = r.city + '|' + r.segment; allCounts[k] = (allCounts[k] || 0) + 1; allCounts[r.city] = (allCounts[r.city] || 0) + 1; allCounts['|' + r.segment] = (allCounts['|' + r.segment] || 0) + 1; allCounts['|'] = (allCounts['|'] || 0) + 1; });
+    const dfwShare = s => allCounts['|' + s] / allCounts['|'];
+    const cityRows = [...cities].sort((a, b) => (allCounts[b] || 0) - (allCounts[a] || 0));
+    $('t-area').innerHTML = `<thead><tr><th>Area</th>${SEGMENTS.map(s => `<th>${s}</th>`).join('')}<th>${measure === 'leads' ? 'Leads' : 'Sales'}</th></tr></thead><tbody>` +
+      cityRows.map(c => `<tr${c === city ? ' style="outline:2px solid var(--accent)"' : ''}><td>${c}</td>${SEGMENTS.map(s => {
+        const share = (allCounts[c + '|' + s] || 0) / (allCounts[c] || 1), idx = share / dfwShare(s) * 100;
+        return `<td style="background:${divColor(idx, 50)};color:${inkFor(idx, 50)}" title="${c} · ${s}: ${pct(share)} of the area's ${measureName()} vs ${pct(dfwShare(s))} across DFW">${pct(share, 0)}</td>`;
+      }).join('')}<td>${num(allCounts[c] || 0)}</td></tr>`).join('') +
+      `<tr class="total"><td>All DFW</td>${SEGMENTS.map(s => `<td>${pct(dfwShare(s), 0)}</td>`).join('')}<td>${num(allCounts['|'])}</td></tr></tbody>`;
+
+    renderInventory();
+  }
+
+  // ----- Inventory health -----
+  const band = { id: 'band', beforeDatasetsDraw(chart) {
+    const { ctx, chartArea: a, scales: { x } } = chart;
+    ctx.save(); ctx.fillStyle = css('--good'); ctx.globalAlpha = 0.12;
+    ctx.fillRect(x.getPixelForValue(45), a.top, x.getPixelForValue(60) - x.getPixelForValue(45), a.bottom - a.top); ctx.restore();
+  } };
+  function invStatus(d) {
+    if (isNaN(d)) return ['', '—', ''];
+    if (d < 30) return ['critical', '✗', 'Short'];
+    if (d < 45) return ['warning', '●', 'Low'];
+    if (d <= 60) return ['good', '✓', 'Healthy'];
+    if (d <= 90) return ['warning', '●', 'High'];
+    return ['critical', '✗', 'Overstock'];
+  }
+  function renderInventory() {
+    const m = $('inv-month').value;
+    const rowsM = SEGMENTS.map(s => inventory.find(r => r.month === m && r.segment === s));
+    const win = Array.from({ length: 12 }, (_, i) => monthAdd(m, -11 + i));
+    const transfers = s => inventory.filter(r => r.segment === s && win.includes(r.month)).reduce((t, r) => t + r.transfers_in, 0);
+    const avg3 = s => { const ms = [monthAdd(m, -2), monthAdd(m, -1), m]; const g = inventory.filter(r => r.segment === s && ms.includes(r.month)); return g.reduce((t, r) => t + r.sold, 0) / (g.length || 1); };
+    $('inv-sub').textContent = `End of ${monthName(m)} · healthy range 45–60 days of supply`;
+    // Short and overstock are opposite problems: red for short, orange for overstock (labels in the table carry the meaning)
+    const statusColor = d => isNaN(d) ? css('--muted') : d < 30 ? css('--critical') : d < 45 ? css('--warning') : d <= 60 ? css('--good') : d <= 90 ? css('--warning') : '#ec835a';
+    draw('c-inv', {
+      type: 'bar', plugins: [band],
+      data: { labels: SEGMENTS, datasets: [{ label: 'Days of supply', data: rowsM.map(r => r ? Math.min(r.days_supply, 200) : null), backgroundColor: rowsM.map(r => statusColor(r ? r.days_supply : NaN)), borderRadius: 4, maxBarThickness: 22 }] },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${num(rowsM[c.dataIndex].days_supply)} days of supply · ${invStatus(rowsM[c.dataIndex].days_supply)[2]}` } } },
+        scales: { x: axisY(v => v + ' d', { max: 200 }), y: { ...axisX() } } },
+    });
+    $('t-inv').innerHTML = `<thead><tr><th>Segment</th><th>In stock</th><th>Sold / mo (3-mo avg)</th><th>Days of supply</th><th>Transfers in (12 mo)</th><th>Status</th></tr></thead><tbody>` +
+      SEGMENTS.map((s, i) => { const r = rowsM[i]; const [cls, icon, label] = invStatus(r.days_supply);
+        return `<tr><td>${s}</td><td>${num(r.closing_stock)}</td><td>${num(avg3(s), 1)}</td><td>${num(r.days_supply)}</td><td>${num(transfers(s))}</td><td><span class="status ${cls}">${icon} ${label}</span></td></tr>`; }).join('') + '</tbody>';
+    const over = SEGMENTS.filter((s, i) => rowsM[i].days_supply > 60), short = SEGMENTS.filter((s, i) => rowsM[i].days_supply < 45);
+    $('i-inv').textContent = `${over.length ? `Overstocked: ${over.join(', ')}. ` : ''}${short.length ? `Short: ${short.join(', ')}. ` : ''}${m >= '2026-07' ? 'The pilot raised conversion in every segment and orders were not adjusted for it. ' : ''}Orders follow last year's sales, so the lot lags the shift in demand. The forecast in the next step is meant to fix that.`;
+  }
+
+  document.querySelectorAll('[data-measure]').forEach(b => b.addEventListener('click', () => {
+    measure = b.dataset.measure;
+    document.querySelectorAll('[data-measure]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    render();
+  }));
+  $('f-city').addEventListener('change', render);
+  $('signal-seg').addEventListener('change', render);
+  $('inv-month').addEventListener('change', renderInventory);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+  render();
+})();
+</script>
+</body>
+</html>

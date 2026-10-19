@@ -75,8 +75,8 @@ Asking *"why?"* repeatedly, starting from the main problem:
 | Leads never contacted | 123 |
 | Lead → sale conversion | 6.8% |
 | Sales | 34.2 |
-| Average gross profit per vehicle sold (incl. F&I) | ~$2,800 |
+| Average gross profit per vehicle sold (incl. F&I) | ~$2,980 |
 
-If the 123 uncontacted leads converted at just 4.9% (the worst band's rate), that would be **~6 more sales per month, about $17K in gross profit per month** lost **simply by not replying**. On top of that comes what could be gained by replying faster to the leads that do get contacted.
+If the 123 uncontacted leads converted at just 4.9% (the worst band's rate), that would be **~6 more sales per month, about $18K in gross profit per month** lost **simply by not replying**. On top of that comes what could be gained by replying faster to the leads that do get contacted.
 
 ➡️ Next: [2 · Proposal](2-proposal.md)
